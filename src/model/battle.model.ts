@@ -1,19 +1,21 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Account } from './account.model';
+import { Ship } from './ship.model';
 
 @Entity()
 export class Battle {
-    
+
     @PrimaryGeneratedColumn()
     battleId: number;
 
-    @Column()
-    accountId: number;
+    @ManyToOne(type => Account, account => account.battles)
+    account: Account;
 
-    @Column()
-    shipId: number;
+    @ManyToOne(type => Ship, ship => ship.battles)
+    ship: Ship;
 
-    @Column()
-    battleTime: number;
+    @Column('date')
+    battleTime: Date;
 
     @Column()
     numberOfBattles: number;
