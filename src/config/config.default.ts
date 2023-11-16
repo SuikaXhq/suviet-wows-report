@@ -5,6 +5,8 @@ import { Battle } from '../model/battle.model';
 import { Group } from '../model/group.model';
 import { GroupDailyReport } from '../model/groupDailyReport.model';
 import { Ship } from '../model/ship.model';
+import { APIRequestRealmEnum } from '../types/apiRequest.types';
+import { getRequestURLByRealm } from '../types/apiRequest.types';
 
 export default {
   // ORM
@@ -29,8 +31,32 @@ export default {
   // Wargaming API
   wargamingAPI: {
     application_id: process.env.APPLICATION_ID, // Wargaming API Application ID
-  }
+  },
 
+  // Axios
+  axios: {
+    default: {
+
+    },
+    clients: {
+      default: {
+        realm: APIRequestRealmEnum.ASIA,
+        baseURL: getRequestURLByRealm(APIRequestRealmEnum.ASIA),
+      },
+      asia: {
+        realm: APIRequestRealmEnum.ASIA,
+        baseURL: getRequestURLByRealm(APIRequestRealmEnum.ASIA),
+      },
+      eu: {
+        realm: APIRequestRealmEnum.EU,
+        baseURL: getRequestURLByRealm(APIRequestRealmEnum.EU),
+      },
+      na: {
+        realm: APIRequestRealmEnum.NA,
+        baseURL: getRequestURLByRealm(APIRequestRealmEnum.NA),
+      },
+    },
+  },
   // use for cookie sign key, should change to your own and keep security
   keys: '',
   koa: {

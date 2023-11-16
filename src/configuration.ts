@@ -7,6 +7,7 @@ import { ReportMiddleware } from './middleware/report.middleware';
 import * as view from '@midwayjs/view-nunjucks';
 import { WeatherErrorFilter } from './filter/weather.filter';
 import * as dotenv from 'dotenv'
+import * as axios from '@midwayjs/axios';
 
 dotenv.config()
 
@@ -14,6 +15,7 @@ dotenv.config()
   imports: [
     koa,
     validate,
+    axios,
     {
       component: info,
       enabledEnvironment: ['local'],
