@@ -6,6 +6,9 @@ import { join } from 'path';
 import { ReportMiddleware } from './middleware/report.middleware';
 import * as view from '@midwayjs/view-nunjucks';
 import { WeatherErrorFilter } from './filter/weather.filter';
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 @Configuration({
   imports: [
