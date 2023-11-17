@@ -27,14 +27,14 @@ export class APIRequestService {
     /**
      * 创建一个查询对象，用于发送对官方API接口的请求并返回结果。
      * @param queryParams GET对应的请求参数，JSON格式
-     * @param realm 服务器
-     * @param url API路径
+     * @param realm 可选，服务器，如果不指定则默认为亚服
+     * @param url 可选，API路径，如果不指定则根据queryParams中的requestTarget推断
      */
-    createQuery<P extends APIRequestParametersType, R>(
-        queryParams: P,
+    createQuery<R>(
+        queryParams: APIRequestParametersType,
         realm: APIRequestRealmEnum = APIRequestRealmEnum.ASIA,
         url?: string
-    ): APIRequestQuery<P, PlayersRequestResult<R>> {
+    ): APIRequestQuery<typeof queryParams, PlayersRequestResult<R>> {
         queryParams = this._validateApplicationId(queryParams);
 
         // 试图推断query URL

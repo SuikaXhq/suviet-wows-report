@@ -27,7 +27,7 @@ export interface PlayersRequestResult<T> {
         count: number;
         hidden: number;
     };
-    data?: T | T[];
+    data?: T;
     error?: {
         message: string;
         code: number;
