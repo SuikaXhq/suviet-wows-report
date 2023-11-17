@@ -21,6 +21,15 @@ export class Battle {
     numberOfBattles: number;
 
     @Column()
+    numberOfSolo: number;
+
+    @Column()
+    numberOfDiv2: number;
+
+    @Column()
+    numberOfDiv3: number;
+
+    @Column()
     isWin: boolean;
 
     @Column()
