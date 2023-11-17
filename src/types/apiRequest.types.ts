@@ -81,7 +81,7 @@ export interface WarshipsRequestParameters extends APIRequestParameters {
     page_no?: number;
 }
 
-export type APIRequestParametersType = 
+export type APIRequestParametersType =
     | PlayersRequestParameters
     | PlayerPersonalDataRequestParameters
     | PlayerAchievementsRequestParameters
@@ -93,3 +93,4 @@ export interface APIRequestQuery<P extends APIRequestParametersType, R> {
     queryParams: P;
     query: () => Promise<R>;
 }
+

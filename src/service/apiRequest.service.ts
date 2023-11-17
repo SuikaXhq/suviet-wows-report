@@ -1,11 +1,11 @@
 import { Config, InjectClient, Singleton } from "@midwayjs/core";
-import { APIRequestParametersType, APIRequestQuery, APIRequestRealmEnum, APIRequestTargetEnum, PlayersRequestParameters } from "../types/apiRequest.types";
+import { APIRequestParametersType, APIRequestQuery, APIRequestRealmEnum, APIRequestTargetEnum, PlayersRequestResult } from "../types/apiRequest.types";
 import { HttpService, HttpServiceFactory } from "@midwayjs/axios";
 import qs from "qs";
 
 /**
+ * 用于发送对官方API接口的请求并返回结果。
  * @class APIRequestService
- * 用于发送对官方API接口的请求并返回结果的类。
  */
 @Singleton()
 export class APIRequestService {
@@ -24,13 +24,19 @@ export class APIRequestService {
     @InjectClient(HttpServiceFactory, 'na')
     naHttpService: HttpService;
 
+    /**
+     * 创建一个查询对象，用于发送对官方API接口的请求并返回结果。
+     * @param queryParams GET对应的请求参数，JSON格式
+     * @param realm 服务器
+     * @param url API路径
+     */
     createQuery<P extends APIRequestParametersType, R>(
         queryParams: P,
         realm: APIRequestRealmEnum = APIRequestRealmEnum.ASIA,
         url?: string
-    ): APIRequestQuery<P, R> {
+    ): APIRequestQuery<P, PlayersRequestResult<R>> {
         queryParams = this._validateApplicationId(queryParams);
-        
+
         // 试图推断query URL
         if (!url) {
             url = this._getQueryURL(queryParams);
@@ -53,13 +59,18 @@ export class APIRequestService {
 
         return {
             queryParams,
-            query: () => {
-                return httpService.get(url, {
-                    params: queryParams,
-                    paramsSerializer: (params) => {
-                        return qs.stringify(params, { arrayFormat: 'comma' });
-                    }
-                });
+            query: async () => {
+                try {
+                    const response = await httpService.get<PlayersRequestResult<R>>(url, {
+                        params: queryParams,
+                        paramsSerializer: (params_1) => {
+                            return qs.stringify(params_1, { arrayFormat: 'comma' });
+                        }
+                    });
+                    return response.data;
+                } catch (error) {
+                    throw error;
+                }
             }
         };
     }
