@@ -1,17 +1,22 @@
-import { Context, DataListener, Inject, Singleton } from "@midwayjs/core";
+import { Autoload, Init, Inject, Singleton } from "@midwayjs/core";
 import { APIRequestService } from "../service/apiRequest.service";
 import { Repository } from "typeorm";
 import { Battle } from "../model/battle.model";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Account } from "../model/account.model";
+import { StatisticsCalculatorService } from "../service/statisticsCalculator.service";
+import * as schedule from 'node-schedule';
+import { APIRequestTargetEnum } from "../types/apiRequest.types";
 
+@Autoload()
 @Singleton()
-export class StatisticsListener extends DataListener<void> {
-    @Inject()
-    ctx: Context;
+export class StatisticsListener {
 
     @Inject()
     apiRequestService: APIRequestService;
+
+    @Inject()
+    statisticsCalculator: StatisticsCalculatorService;
 
     @InjectEntityModel(Battle)
     battleModel: Repository<Battle>;
@@ -19,25 +24,67 @@ export class StatisticsListener extends DataListener<void> {
     @InjectEntityModel(Account)
     accountModel: Repository<Account>;
 
-    private intervalHandler;
+    private updateJob;
 
-    initData() {
-        return;
-    }
-
-    onData() {
-        this.intervalHandler = setInterval(async () => {
+    @Init()
+    async init() {
+        this.updateJob = schedule.scheduleJob('0 * * * * *', async () => {
             let accounts = await this.accountModel.find();
-            await Promise.all(accounts.map(account => this._updateBattles(account)));
-        }, 1000 * 60) // update per minute
+            await this._updateBattles(accounts);
+        });
     }
 
-    async destroyListener() {
-        clearInterval(this.intervalHandler);
+    async destory() {
+        this.updateJob.cancel();
     }
 
-    private async _updateBattles(account: Account): Promise<void> {
+    private async _updateBattles(accounts: Account[]): Promise<void> {
+        const savedLastBattleTimes = await this.battleModel
+            .createQueryBuilder('battle')
+            .select('battle.accountId')
+            .addSelect('MAX(battle.battleTime)', 'lastBattleTime')
+            .groupBy('battle.accountId')
+            .getRawMany<{
+                accountId: number;
+                lastBattleTime: number;
+            }>();
+        const accountsToUpdate = accounts.filter(account => {
+            const lastUpdatedTime = account.lastUpdatedTime;
+            const savedLastBattleTime = savedLastBattleTimes.find(savedLastBattleTime => savedLastBattleTime.accountId === account.accountId).lastBattleTime;
+            return lastUpdatedTime < savedLastBattleTime;
+        });
 
+        await Promise.all(accountsToUpdate.map(async account => {
+            // get all ship last battle times and number of battles
+            const shipLastBattleTimesQueryResult = await this.apiRequestService.createQuery<{
+                [account_id: number]: {
+                    ship_id: number;
+                    pvp_solo: {
+                        battles: number;
+                    };
+                    pvp_div2: {
+                        battles: number;
+                    };
+                    pvp_div3: {
+                        battles: number;
+                    };
+                }[]
+            }>({
+                requestTarget: APIRequestTargetEnum.StatisticsOfPlayerShips,
+                account_id: account.accountId,
+                fields: ['ship_id', 'pvp_solo.battles', 'pvp_div2.battles', 'pvp_div3.battles'],
+                extra: ['pvp_solo', 'pvp_div2', 'pvp_div3'],
+            }).query();
+            if (shipLastBattleTimesQueryResult.status !== 'ok') {
+                throw new Error(`Failed to get ship last battle times of account ${account.accountId}`);
+            }
+            const shipLastBattleTimes = shipLastBattleTimesQueryResult.data[account.accountId];
+
+            // compare with db, filter out the battles to update
+
+            // update db
+
+        });
     }
 
 }
