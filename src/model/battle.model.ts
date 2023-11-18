@@ -18,7 +18,7 @@ export class Battle {
     battleTime: number;
 
     @Column()
-    battleType: string; // PVP_SOLO, PVP_DIV2, PVP_DIV3, RANK_SOLO, RANK_DIV2, RANK_DIV3
+    battleType: BattleTypeEnum; // PVP_SOLO, PVP_DIV2, PVP_DIV3, RANK_SOLO, RANK_DIV2, RANK_DIV3
 
     @Column()
     numberOfBattles: number;
@@ -123,7 +123,7 @@ export class Battle {
      * @param battles
      * @returns 数据合并后的Battle
      */
-    static mergeBattles(battles: Battle[]): CalculatedBattle {
+    static mergeBattles(battles: (CalculatedBattle | Battle)[]): CalculatedBattle {
         if (battles.length === 0) {
             return Battle.createEmptyBattle();
         }
@@ -161,7 +161,7 @@ export class Battle {
      * @param oldBattle
      * @returns newBattle - oldBattle
      */
-    static substractBattle(newBattle: Battle, oldBattle: Battle): CalculatedBattle {
+    static substractBattle(newBattle: CalculatedBattle | Battle, oldBattle: CalculatedBattle | Battle): CalculatedBattle {
         return {
             numberOfBattles: newBattle.numberOfBattles - oldBattle.numberOfBattles,
             wins: newBattle.wins - oldBattle.wins,

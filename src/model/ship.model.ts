@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, ManyToMany, JoinTable, OneToMany, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { Account } from './account.model';
 import { Battle } from './battle.model';
 
@@ -8,11 +8,8 @@ export class Ship {
     @PrimaryColumn()
     shipId: number;
 
-    @UpdateDateColumn()
-    updatedDate: Date;
-
     @Column()
-    shipType: string;
+    shipType: ShipTypeEnum;
 
     @Column('real')
     averageDamage: number;
@@ -29,4 +26,12 @@ export class Ship {
 
     @OneToMany(type => Battle, battle => battle.ship)
     battles: Battle[];
+}
+
+export enum ShipTypeEnum {
+    Destroyer = 'Destroyer',
+    Cruiser = 'Cruiser',
+    Battleship = 'Battleship',
+    AirCarrier = 'AirCarrier',
+    Submarine = 'Submarine',
 }

@@ -1,12 +1,13 @@
 import { Autoload, Init, Inject, Singleton } from "@midwayjs/core";
 import { APIRequestService } from "../service/apiRequest.service";
 import { Repository } from "typeorm";
-import { Battle } from "../model/battle.model";
+import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Account } from "../model/account.model";
 import { StatisticsCalculatorService } from "../service/statisticsCalculator.service";
 import * as schedule from 'node-schedule';
-import { APIRequestTargetEnum } from "../types/apiRequest.types";
+import { APIRequestTargetEnum, PvpStats, StatisticsOfPlayerShipQueryData } from "../types/apiRequest.types";
+import { Ship } from "../model/ship.model";
 
 @Autoload()
 @Singleton()
@@ -24,6 +25,9 @@ export class StatisticsListener {
     @InjectEntityModel(Account)
     accountModel: Repository<Account>;
 
+    @InjectEntityModel(Ship)
+    shipModel: Repository<Ship>;
+
     private updateJob;
 
     @Init()
@@ -39,23 +43,27 @@ export class StatisticsListener {
     }
 
     private async _updateBattles(accounts: Account[]): Promise<void> {
-        const savedLastBattleTimes = await this.battleModel
-            .createQueryBuilder('battle')
-            .select('battle.accountId')
-            .addSelect('MAX(battle.battleTime)', 'lastBattleTime')
-            .groupBy('battle.accountId')
-            .getRawMany<{
-                accountId: number;
-                lastBattleTime: number;
-            }>();
+        // 获取玩家当前API中最后一场战斗的时间
+        const lastBattleTimesQueryResult = await this.apiRequestService.createQuery<{
+            [account_id: number]: {
+                last_battle_time: number;
+            }
+        }>({
+            requestTarget: APIRequestTargetEnum.PlayerPersonalData,
+            account_id: accounts.map(account => account.accountId),
+            fields: ['last_battle_time'],
+        }).query();
+        if (lastBattleTimesQueryResult.status !== 'ok') {
+            throw new Error('Failed to get last battle times');
+        }
+        // 筛出需要更新的玩家
         const accountsToUpdate = accounts.filter(account => {
-            const lastUpdatedTime = account.lastUpdatedTime;
-            const savedLastBattleTime = savedLastBattleTimes.find(savedLastBattleTime => savedLastBattleTime.accountId === account.accountId).lastBattleTime;
-            return lastUpdatedTime < savedLastBattleTime;
+            return account.lastUpdatedTime < lastBattleTimesQueryResult.data[account.accountId].last_battle_time;
         });
 
+        // 寻找数据变化的船，更新数据
         await Promise.all(accountsToUpdate.map(async account => {
-            // get all ship last battle times and number of battles
+            // 获得当前API给出的战斗场数
             const shipLastBattleTimesQueryResult = await this.apiRequestService.createQuery<{
                 [account_id: number]: {
                     ship_id: number;
@@ -78,13 +86,150 @@ export class StatisticsListener {
             if (shipLastBattleTimesQueryResult.status !== 'ok') {
                 throw new Error(`Failed to get ship last battle times of account ${account.accountId}`);
             }
-            const shipLastBattleTimes = shipLastBattleTimesQueryResult.data[account.accountId];
+            const shipNOBattles = shipLastBattleTimesQueryResult.data[account.accountId];
+            const shipNOBattlesConverted: {
+                [ship_id: number]: {
+                    pvp_solo: number;
+                    pvp_div2: number;
+                    pvp_div3: number;
+                };
+            } = {};
+            shipNOBattles.forEach(shipNOBattle => {
+                shipNOBattlesConverted[shipNOBattle.ship_id] = {
+                    pvp_solo: shipNOBattle.pvp_solo.battles,
+                    pvp_div2: shipNOBattle.pvp_div2.battles,
+                    pvp_div3: shipNOBattle.pvp_div3.battles,
+                };
+            });
 
-            // compare with db, filter out the battles to update
+            // 获取数据库中每条船的战斗数，分为solo、div2、div3
+            const savedShipNOBattles = await this.battleModel
+                .createQueryBuilder('battle')
+                .select('battle.shipId')
+                .addSelect('battle.battleType')
+                .addSelect('COUNT(battle.battleId)', 'NObattles')
+                .where('battle.accountId = :accountId', { accountId: account.accountId })
+                .groupBy('battle.shipId')
+                .addGroupBy('battle.battleType')
+                .getRawMany<{
+                    shipId: number;
+                    battleType: BattleTypeEnum;
+                    NObattles: number;
+                }>();
+            const savedShipNOBattlesConverted: {
+                [ship_id: number]: {
+                    [battleType: string]: number;
+                };
+            } = {};
+            savedShipNOBattles.forEach(savedShipNOBattle => {
+                if (savedShipNOBattlesConverted[savedShipNOBattle.shipId] === undefined) {
+                    savedShipNOBattlesConverted[savedShipNOBattle.shipId] = {};
+                }
+                savedShipNOBattlesConverted[savedShipNOBattle.shipId][savedShipNOBattle.battleType] = savedShipNOBattle.NObattles;
+            });
 
-            // update db
+            // 找出需要更新的ship_id
+            const shipIdsToUpdate = Object.keys(shipNOBattlesConverted).filter(shipId => {
+                const savedShipNOBattles = savedShipNOBattlesConverted[shipId];
+                const shipNOBattles = shipNOBattlesConverted[shipId];
+                return savedShipNOBattles === undefined
+                    || savedShipNOBattles.pvp_solo < shipNOBattles.pvp_solo
+                    || savedShipNOBattles.pvp_div2 < shipNOBattles.pvp_div2
+                    || savedShipNOBattles.pvp_div3 < shipNOBattles.pvp_div3;
+            }).map(shipId => parseInt(shipId));
 
-        });
+            // 获取需要更新的ship_id的战斗数据
+            const battlesQueryResult = await this.apiRequestService.createQuery<Partial<StatisticsOfPlayerShipQueryData>>({
+                requestTarget: APIRequestTargetEnum.StatisticsOfPlayerShips,
+                account_id: account.accountId,
+                ship_id: shipIdsToUpdate,
+                fields: ['ship_id', 'last_battle_time', 'pvp_solo', 'pvp_div2', 'pvp_div3'],
+                extra: ['pvp_solo', 'pvp_div2', 'pvp_div3'],
+            }).query();
+            if (battlesQueryResult.status !== 'ok') {
+                throw new Error(`Failed to get statistics of account ${account.accountId}`);
+            }
+            const presentStatistics = battlesQueryResult.data[account.accountId];
+            const presentStatisticsConverted: {
+                [ship_id: number]: {
+                    last_battle_time: number;
+                    pvp_solo: Partial<PvpStats>;
+                    pvp_div2: Partial<PvpStats>;
+                    pvp_div3: Partial<PvpStats>;
+                };
+            } = {};
+            presentStatistics.forEach(presentStatistic => {
+                presentStatisticsConverted[presentStatistic.ship_id] = {
+                    last_battle_time: presentStatistic.last_battle_time,
+                    pvp_solo: presentStatistic.pvp_solo,
+                    pvp_div2: presentStatistic.pvp_div2,
+                    pvp_div3: presentStatistic.pvp_div3,
+                };
+            });
+
+            // 获取数据库中每条船的战斗数据
+            await Promise.all(presentStatistics.map(async presentStatistic => {
+                const currentShip = await this.shipModel.findOne({
+                    where: {
+                        shipId: presentStatistic.ship_id,
+                    },
+                });
+                if (currentShip === undefined) {
+                    return; // TODO: 更新Ship
+                }
+                await Promise.all(Object.values(BattleTypeEnum).map(async battleType => {
+                    const existingStatistic = await this.statisticsCalculator.battleSummary(
+                        account,
+                        currentShip,
+                        battleType,
+                        new Date(presentStatistic.last_battle_time * 1000)
+                    );
+
+                    // 进行差分，得到需要插入的Battle对象
+                    const updatedBattle = Battle.substractBattle({
+                        numberOfBattles: presentStatistic[battleType].battles,
+                        wins: presentStatistic[battleType].wins,
+                        damageDealt: presentStatistic[battleType].damage_dealt,
+                        damageScouting: presentStatistic[battleType].damage_scouting,
+                        damagePotential: presentStatistic[battleType].art_agro,
+                        capturePoints: presentStatistic[battleType].capture_points,
+                        capturePointsDropped: presentStatistic[battleType].dropped_capture_points,
+                        fragsTotal: presentStatistic[battleType].frags,
+                        planesKilled: presentStatistic[battleType].planes_killed,
+                        survives: presentStatistic[battleType].survived_battles,
+                        xp: presentStatistic[battleType].xp,
+                        fragsByMain: presentStatistic[battleType].main_battery.frags,
+                        fragsBySecondary: presentStatistic[battleType].second_battery.frags,
+                        fragsByTorpedoes: presentStatistic[battleType].torpedoes.frags,
+                        fragsByRamming: presentStatistic[battleType].ramming.frags,
+                        fragsByAircraft: presentStatistic[battleType].aircraft.frags,
+                        hitsByMain: presentStatistic[battleType].main_battery.hits,
+                        hitsBySecondary: presentStatistic[battleType].second_battery.hits,
+                        hitsByTorpedoes: presentStatistic[battleType].torpedoes.hits,
+                        shotsByMain: presentStatistic[battleType].main_battery.shots,
+                        shotsBySecondary: presentStatistic[battleType].second_battery.shots,
+                        shotsByTorpedoes: presentStatistic[battleType].torpedoes.shots,
+                    }, existingStatistic);
+
+                    // 更新数据库
+                    if (updatedBattle.numberOfBattles > 0) {
+                        this.battleModel.create({
+                            ...updatedBattle,
+                            account: account,
+                            ship: currentShip,
+                            battleTime: presentStatistic.last_battle_time,
+                            battleType: battleType,
+                        });
+                    }
+                    if (presentStatistic.last_battle_time > account.lastUpdatedTime) {
+                        this.accountModel.update({
+                            accountId: account.accountId,
+                        }, {
+                            lastUpdatedTime: presentStatistic.last_battle_time,
+                        });
+                    }
+                }));
+            }));
+        }));
     }
-
 }
