@@ -8,7 +8,7 @@ import { GroupDailyReport } from './groupDailyReport.model';
 export class Account {
 
     @PrimaryColumn()
-    accoundId: number;
+    accountId: number;
 
     @Column()
     nickName: string;

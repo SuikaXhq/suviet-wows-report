@@ -18,19 +18,13 @@ export class Battle {
     battleTime: Date;
 
     @Column()
+    battleType: string; // PVP_SOLO, PVP_DIV2, PVP_DIV3, PVE, RANK_SOLO, RANK_DIV2, RANK_DIV3, OPER, CLUB
+
+    @Column()
     numberOfBattles: number;
 
     @Column()
-    numberOfSolo: number;
-
-    @Column()
-    numberOfDiv2: number;
-
-    @Column()
-    numberOfDiv3: number;
-
-    @Column()
-    isWin: boolean;
+    wins: number;
 
     @Column()
     damageDealt: number;
@@ -54,7 +48,7 @@ export class Battle {
     planesKilled: number;
 
     @Column()
-    isSurvived: boolean;
+    survives: number;
 
     @Column()
     xp: number;
@@ -63,18 +57,149 @@ export class Battle {
     fragsByMain: number;
 
     @Column()
-    hitRateByMain: number;
+    hitsByMain: number;
+
+    @Column()
+    shotsByMain: number;
 
     @Column()
     fragsBySecondary: number;
 
     @Column()
-    hitRateBySecondary: number;
+    hitsBySecondary: number;
+
+    @Column()
+    shotsBySecondary: number;
 
     @Column()
     fragsByTorpedoes: number;
 
     @Column()
-    hitRateByTorpedoes: number;
+    hitsByTorpedoes: number;
 
+    @Column()
+    shotsByTorpedoes: number;
+
+    @Column()
+    fragsByRamming: number;
+
+    @Column()
+    fragsByAircraft: number;
+
+    static createEmptyBattle(): CalculatedBattle {
+        const battle = new Battle();
+        battle.account = null;
+        battle.ship = null;
+        battle.battleTime = null;
+        battle.battleId = null;
+        battle.battleType = null;
+        battle.numberOfBattles = 0;
+        battle.wins = 0;
+        battle.damageDealt = 0;
+        battle.damageScouting = 0;
+        battle.damagePotential = 0;
+        battle.capturePoints = 0;
+        battle.capturePointsDropped = 0;
+        battle.fragsTotal = 0;
+        battle.planesKilled = 0;
+        battle.survives = 0;
+        battle.xp = 0;
+        battle.fragsByMain = 0;
+        battle.fragsBySecondary = 0;
+        battle.fragsByTorpedoes = 0;
+        battle.fragsByRamming = 0;
+        battle.fragsByAircraft = 0;
+        battle.hitsByMain = 0;
+        battle.hitsBySecondary = 0;
+        battle.hitsByTorpedoes = 0;
+        battle.shotsByMain = 0;
+        battle.shotsBySecondary = 0;
+        battle.shotsByTorpedoes = 0;
+        return battle;
+    }
+
+    /**
+     * 将多个Battle合并为一个Battle，需要保证多个Battle的账号和船只相同
+     * @param battles
+     * @returns 数据合并后的Battle
+     */
+    static mergeBattles(battles: Battle[]): CalculatedBattle {
+        if (battles.length === 0) {
+            return Battle.createEmptyBattle();
+        }
+        const newBattle: CalculatedBattle = Battle.createEmptyBattle();
+        battles.forEach(battle => {
+            newBattle.numberOfBattles += battle.numberOfBattles;
+            newBattle.wins += battle.wins;
+            newBattle.damageDealt += battle.damageDealt;
+            newBattle.damageScouting += battle.damageScouting;
+            newBattle.damagePotential += battle.damagePotential;
+            newBattle.capturePoints += battle.capturePoints;
+            newBattle.capturePointsDropped += battle.capturePointsDropped;
+            newBattle.fragsTotal += battle.fragsTotal;
+            newBattle.planesKilled += battle.planesKilled;
+            newBattle.survives += battle.survives;
+            newBattle.xp += battle.xp;
+            newBattle.fragsByMain += battle.fragsByMain;
+            newBattle.fragsBySecondary += battle.fragsBySecondary;
+            newBattle.fragsByTorpedoes += battle.fragsByTorpedoes;
+            newBattle.fragsByRamming += battle.fragsByRamming;
+            newBattle.fragsByAircraft += battle.fragsByAircraft;
+            newBattle.hitsByMain += battle.hitsByMain;
+            newBattle.hitsBySecondary += battle.hitsBySecondary;
+            newBattle.hitsByTorpedoes += battle.hitsByTorpedoes;
+            newBattle.shotsByMain += battle.shotsByMain;
+            newBattle.shotsBySecondary += battle.shotsBySecondary;
+            newBattle.shotsByTorpedoes += battle.shotsByTorpedoes;
+        });
+        return newBattle;
+    }
+
+    /**
+     * 将新的Battle与旧的Battle相减
+     * @param newBattle
+     * @param oldBattle
+     * @returns newBattle - oldBattle
+     */
+    static substractBattle(newBattle: Battle, oldBattle: Battle): CalculatedBattle {
+        return {
+            numberOfBattles: newBattle.numberOfBattles - oldBattle.numberOfBattles,
+            wins: newBattle.wins - oldBattle.wins,
+            damageDealt: newBattle.damageDealt - oldBattle.damageDealt,
+            damageScouting: newBattle.damageScouting - oldBattle.damageScouting,
+            damagePotential: newBattle.damagePotential - oldBattle.damagePotential,
+            capturePoints: newBattle.capturePoints - oldBattle.capturePoints,
+            capturePointsDropped: newBattle.capturePointsDropped - oldBattle.capturePointsDropped,
+            fragsTotal: newBattle.fragsTotal - oldBattle.fragsTotal,
+            planesKilled: newBattle.planesKilled - oldBattle.planesKilled,
+            survives: newBattle.survives - oldBattle.survives,
+            xp: newBattle.xp - oldBattle.xp,
+            fragsByMain: newBattle.fragsByMain - oldBattle.fragsByMain,
+            fragsBySecondary: newBattle.fragsBySecondary - oldBattle.fragsBySecondary,
+            fragsByTorpedoes: newBattle.fragsByTorpedoes - oldBattle.fragsByTorpedoes,
+            fragsByRamming: newBattle.fragsByRamming - oldBattle.fragsByRamming,
+            fragsByAircraft: newBattle.fragsByAircraft - oldBattle.fragsByAircraft,
+            hitsByMain: newBattle.hitsByMain - oldBattle.hitsByMain,
+            hitsBySecondary: newBattle.hitsBySecondary - oldBattle.hitsBySecondary,
+            hitsByTorpedoes: newBattle.hitsByTorpedoes - oldBattle.hitsByTorpedoes,
+            shotsByMain: newBattle.shotsByMain - oldBattle.shotsByMain,
+            shotsBySecondary: newBattle.shotsBySecondary - oldBattle.shotsBySecondary,
+            shotsByTorpedoes: newBattle.shotsByTorpedoes - oldBattle.shotsByTorpedoes,
+        }
+    }
+
+}
+
+export type CalculatedBattle = Omit<Battle, 'battleId' | 'account' | 'ship' | 'battleTime' | 'battleType'>;
+
+export enum BattleTypeEnum {
+    PVP_SOLO = 'pvp_solo',
+    PVP_DIV2 = 'pvp_div2',
+    PVP_DIV3 = 'pvp_div3',
+    PVE = 'pve',
+    RANK_SOLO = 'rank_solo',
+    RANK_DIV2 = 'rank_div2',
+    RANK_DIV3 = 'rank_div3',
+    OPER = 'oper',
+    CLUB = 'club'
 }
