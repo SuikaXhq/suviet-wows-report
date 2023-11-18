@@ -176,5 +176,8 @@ export interface StatisticsOfPlayerShipQueryData {
         pvp_div2?: Partial<PvpStats>; // Player statistics in Random Battles in Division of 2 players. An extra field.
         pvp_div3?: Partial<PvpStats>; // Player statistics in Random Battles in Division of 3 players. An extra field.
         pvp_solo?: Partial<PvpStats>; // Player statistics in solo battles fought in Random mode. An extra field.
+        rank_solo?: Partial<PvpStats>; // Player statistics in solo battles fought in Ranked mode. An extra field.
+        rank_div2?: Partial<PvpStats>; // Player statistics in Ranked Battles in Division of 2 players. An extra field.
+        rank_div3?: Partial<PvpStats>; // Player statistics in Ranked Battles in Division of 3 players. An extra field.
     }[];
 }

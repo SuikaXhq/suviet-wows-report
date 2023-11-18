@@ -14,11 +14,11 @@ export class Battle {
     @ManyToOne(type => Ship, ship => ship.battles)
     ship: Ship;
 
-    @Column('date')
-    battleTime: Date;
+    @Column()
+    battleTime: number;
 
     @Column()
-    battleType: string; // PVP_SOLO, PVP_DIV2, PVP_DIV3, PVE, RANK_SOLO, RANK_DIV2, RANK_DIV3, OPER, CLUB
+    battleType: string; // PVP_SOLO, PVP_DIV2, PVP_DIV3, RANK_SOLO, RANK_DIV2, RANK_DIV3
 
     @Column()
     numberOfBattles: number;
@@ -119,7 +119,7 @@ export class Battle {
     }
 
     /**
-     * 将多个Battle合并为一个Battle，需要保证多个Battle的账号和船只相同
+     * 将多个Battle数据加和生成一个Battle，无视battleId, account, ship, battleTime, battleType属性
      * @param battles
      * @returns 数据合并后的Battle
      */
@@ -156,7 +156,7 @@ export class Battle {
     }
 
     /**
-     * 将新的Battle与旧的Battle相减
+     * 将新的Battle与旧的Battle相减，无视battleId, account, ship, battleTime, battleType属性
      * @param newBattle
      * @param oldBattle
      * @returns newBattle - oldBattle
@@ -196,10 +196,10 @@ export enum BattleTypeEnum {
     PVP_SOLO = 'pvp_solo',
     PVP_DIV2 = 'pvp_div2',
     PVP_DIV3 = 'pvp_div3',
-    PVE = 'pve',
-    RANK_SOLO = 'rank_solo',
-    RANK_DIV2 = 'rank_div2',
-    RANK_DIV3 = 'rank_div3',
-    OPER = 'oper',
-    CLUB = 'club'
+    // RANK_SOLO = 'rank_solo',
+    // RANK_DIV2 = 'rank_div2',
+    // RANK_DIV3 = 'rank_div3',
+    // PVE = 'pve',
+    // OPER = 'oper',
+    // CLUB = 'club',
 }

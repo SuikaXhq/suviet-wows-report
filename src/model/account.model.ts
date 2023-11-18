@@ -17,6 +17,9 @@ export class Account {
     qqId: number;
 
     @Column()
+    lastUpdatedTime: number; // 最后一次检查到Battle数据更新的时间
+
+    @Column()
     accessToken: string;
 
     @Column('date')

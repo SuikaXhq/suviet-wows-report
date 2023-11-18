@@ -1,23 +1,18 @@
 import { Provide } from "@midwayjs/core";
 import { InjectEntityModel } from "@midwayjs/typeorm";
-import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model";
+import { Battle, BattleTypeEnum } from "../model/battle.model";
 import { Account } from "../model/account.model";
 import { Between, Repository } from "typeorm";
 import { Ship } from "../model/ship.model";
-
 
 @Provide()
 export class StatisticsCalculatorService {
     @InjectEntityModel(Battle)
     battleModel: Repository<Battle>;
 
-    @InjectEntityModel(Account)
-    accountModel: Repository<Account>;
-
-    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, startTime?: Date, endTime?: Date): Promise<Battle> {
+    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, startTime?: Date, endTime?: Date): Promise<Omit<Battle, 'battleId'>> {
         if (startTime === undefined) {
-            startTime = new Date();
-            startTime.setDate(startTime.getDate() - 1);
+            startTime = new Date(0);
         }
         if (endTime === undefined) {
             endTime = new Date();
@@ -27,16 +22,16 @@ export class StatisticsCalculatorService {
                 account: account,
                 ship: ship,
                 battleType: battleType,
-                battleTime: Between(startTime, endTime)
+                battleTime: Between(startTime.getTime() / 1000, endTime.getTime() / 1000)
             }
         });
-        let mergedBattles = Battle.mergeBattles(battles);
+        let mergedBattles = Battle.mergeBattles(battles); // return all 0 when battles is empty
         return {
             ...mergedBattles,
-            battleId: null,
             account: account,
             ship: ship,
-            battleTime: endTime,
+            battleType: battleType,
+            battleTime: Math.max(...battles.map(battle => battle.battleTime)),
         }
     }
 }
