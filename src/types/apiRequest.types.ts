@@ -93,7 +93,13 @@ export type APIRequestParametersType =
     | StatisticsOfPlayerShipsRequestParameters
     | WarshipsRequestParameters;
 
+/**
+ * 待执行的官方API请求对象。
+ */
 export interface APIRequestQuery<P extends APIRequestParametersType, R> {
+    /**
+     * 请求参数
+     */
     queryParams: P;
     query: () => Promise<R>;
 }
@@ -131,46 +137,21 @@ export interface PvpStats {
     torpedo_agro: number; // Potential damage caused by torpedoes
     wins: number; // Victories
     xp: number; // Total Experience Points , including XP earned with Premium Account
-    aircraft: Partial<AircraftStats>; // Statistics of aircraft used
-    main_battery: Partial<MainBatteryStats>; // Main battery firing statistics
-    ramming: Partial<RammingStats>; // Statistics of ramming enemy warships
-    second_battery: Partial<SecondBatteryStats>; // Secondary armament firing statistics
-    torpedoes: Partial<TorpedoStats>; // Statistics of attacking targets with torpedoes
+    aircraft: Partial<FragWeaponStats>; // Statistics of aircraft used
+    main_battery: Partial<GunStats>; // Main battery firing statistics
+    ramming: Partial<FragWeaponStats>; // Statistics of ramming enemy warships
+    second_battery: Partial<GunStats>; // Secondary armament firing statistics
+    torpedoes: Partial<GunStats>; // Statistics of attacking targets with torpedoes
 }
 
-// Statistics of aircraft used interface
-export interface AircraftStats {
+export interface FragWeaponStats {
     frags: number; // Warships destroyed
     max_frags_battle: number; // Maximum number of enemy warships destroyed per battle
 }
 
 // Main battery firing statistics interface
-export interface MainBatteryStats {
-    frags: number; // Warships destroyed
+export interface GunStats extends FragWeaponStats {
     hits: number; // Hits
-    max_frags_battle: number; // Maximum number of enemy warships destroyed per battle
-    shots: number; // Shots fired
-}
-
-// Statistics of ramming enemy warships interface
-export interface RammingStats {
-    frags: number; // Warships destroyed
-    max_frags_battle: number; // Maximum number of enemy warships destroyed per battle
-}
-
-// Secondary armament firing statistics interface
-export interface SecondBatteryStats {
-    frags: number; // Warships destroyed
-    hits: number; // Hits
-    max_frags_battle: number; // Maximum number of enemy warships destroyed per battle
-    shots: number; // Shots fired
-}
-
-// Statistics of attacking targets with torpedoes interface
-export interface TorpedoStats {
-    frags: number; // Warships destroyed
-    hits: number; // Hits
-    max_frags_battle: number; // Maximum number of enemy warships destroyed per battle
     shots: number; // Shots fired
 }
 
