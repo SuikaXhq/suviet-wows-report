@@ -8,12 +8,14 @@ import * as view from '@midwayjs/view-nunjucks';
 import { WeatherErrorFilter } from './filter/weather.filter';
 import * as dotenv from 'dotenv'
 import * as axios from '@midwayjs/axios';
+import * as orm from '@midwayjs/typeorm';
 
 dotenv.config()
 
 @Configuration({
   imports: [
     koa,
+    orm,
     validate,
     axios,
     {

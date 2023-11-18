@@ -1,10 +1,5 @@
 import { MidwayConfig } from '@midwayjs/core';
 import path from 'node:path';
-import { Account } from '../model/account.model';
-import { Battle } from '../model/battle.model';
-import { Group } from '../model/group.model';
-import { GroupDailyReport } from '../model/groupDailyReport.model';
-import { Ship } from '../model/ship.model';
 import { APIRequestRealmEnum } from '../types/apiRequest.types';
 import { getRequestURLByRealm } from '../types/apiRequest.types';
 
@@ -17,13 +12,7 @@ export default {
         database: path.join(__dirname, '../db/suviet-wows-report.sqlite'),
         synchronize: true,
         logging: false,
-        entities: [
-            Account,
-            Battle,
-            Ship,
-            Group,
-            GroupDailyReport
-        ],
+        entities: ["**/model/*.model.ts"],
       }
     }
   },
