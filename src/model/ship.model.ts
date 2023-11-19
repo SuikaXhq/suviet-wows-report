@@ -8,16 +8,33 @@ export class Ship {
     @PrimaryColumn()
     shipId: number;
 
+    @Column({
+        default: 0,
+    })
+    lastUpdateTime: number;
+
+    @Column()
+    shipName: string;
+
     @Column()
     shipType: ShipTypeEnum;
 
-    @Column('real')
+    @Column('real', {
+        nullable: true,
+        default: null,
+    })
     averageDamage: number;
 
-    @Column('real')
+    @Column('real', {
+        nullable: true,
+        default: null,
+    })
     averageWinRate: number;
 
-    @Column('real')
+    @Column('real', {
+        nullable: true,
+        default: null,
+    })
     averageFrags: number;
 
     @ManyToMany(type => Account, account => account.ships)

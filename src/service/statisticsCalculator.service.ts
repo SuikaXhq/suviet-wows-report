@@ -1,4 +1,4 @@
-import { Provide } from "@midwayjs/core";
+import { Provide, Scope, ScopeEnum } from "@midwayjs/core";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Battle, BattleTypeEnum } from "../model/battle.model";
 import { Account } from "../model/account.model";
@@ -6,6 +6,7 @@ import { Between, Repository } from "typeorm";
 import { Ship } from "../model/ship.model";
 
 @Provide()
+@Scope(ScopeEnum.Request, { allowDowngrade: true })
 export class StatisticsCalculatorService {
     @InjectEntityModel(Battle)
     battleModel: Repository<Battle>;

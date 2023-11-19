@@ -9,7 +9,7 @@ export default {
     dataSource: {
       default: {
         type: 'sqlite',
-        database: path.join(__dirname, '../db/suviet-wows-report.sqlite'),
+        database: path.join(__dirname, '../../db/suviet-wows-report.sqlite'),
         synchronize: true,
         logging: false,
         entities: ["**/model/*.model.ts"],
@@ -28,10 +28,7 @@ export default {
 
     },
     clients: {
-      default: {
-        realm: APIRequestRealmEnum.ASIA,
-        baseURL: getRequestURLByRealm(APIRequestRealmEnum.ASIA),
-      },
+      default: {},
       asia: {
         realm: APIRequestRealmEnum.ASIA,
         baseURL: getRequestURLByRealm(APIRequestRealmEnum.ASIA),

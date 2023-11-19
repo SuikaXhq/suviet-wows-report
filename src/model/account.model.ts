@@ -13,17 +13,28 @@ export class Account {
     @Column()
     nickName: string;
 
-    @Column()
+    @Column({
+        nullable: true,
+        default: null,
+    })
     qqId: number;
 
-    @Column()
+    @Column({
+        default: 0,
+    })
     lastUpdatedTime: number; // 最后一次检查到Battle数据更新的时间
 
-    @Column()
+    @Column({
+        nullable: true,
+        default: null,
+    })
     accessToken: string;
 
-    @Column('date')
-    accessTokenExpireTime: Date;
+    @Column({
+        nullable: true,
+        default: null,
+    })
+    accessTokenExpireTime: number;
 
     @ManyToMany(type => Group, group => group.accounts)
     groups: Group[];

@@ -8,6 +8,7 @@ import { StatisticsCalculatorService } from "../service/statisticsCalculator.ser
 import * as schedule from 'node-schedule';
 import { APIRequestTargetEnum, PvpStats, StatisticsOfPlayerShipQueryData } from "../types/apiRequest.types";
 import { Ship } from "../model/ship.model";
+import { ShipListener } from "./ship.listener";
 
 @Autoload()
 @Singleton()
@@ -18,6 +19,9 @@ export class StatisticsListener {
 
     @Inject()
     statisticsCalculator: StatisticsCalculatorService;
+
+    @Inject()
+    shipListener: ShipListener;
 
     @InjectEntityModel(Battle)
     battleModel: Repository<Battle>;
@@ -35,6 +39,7 @@ export class StatisticsListener {
         this.updateJob = schedule.scheduleJob('0 * * * * *', async () => {
             let accounts = await this.accountModel.find();
             await this._updateBattles(accounts);
+            console.log('Updated battles.');
         });
     }
 
@@ -43,6 +48,11 @@ export class StatisticsListener {
     }
 
     private async _updateBattles(accounts: Account[]): Promise<void> {
+        if (accounts.length === 0) {
+            return;
+        }
+        // 更新当前服务器平均数据
+        this.shipListener.updateShips();
         // 获取玩家当前API中最后一场战斗的时间
         const lastBattleTimesQueryResult = await this.apiRequestService.createQuery<{
             [account_id: number]: {
@@ -58,6 +68,9 @@ export class StatisticsListener {
         }
         // 筛出需要更新的玩家
         const accountsToUpdate = accounts.filter(account => {
+            if (account.lastUpdatedTime === undefined || account.lastUpdatedTime === null) {
+                return true;
+            }
             return account.lastUpdatedTime < lastBattleTimesQueryResult.data[account.accountId].last_battle_time;
         });
 
@@ -105,11 +118,11 @@ export class StatisticsListener {
             // 获取数据库中每条船的战斗数，分为solo、div2、div3
             const savedShipNOBattles = await this.battleModel
                 .createQueryBuilder('battle')
-                .select('battle.shipId')
+                .select('battle.ship')
                 .addSelect('battle.battleType')
                 .addSelect('COUNT(battle.battleId)', 'NObattles')
-                .where('battle.accountId = :accountId', { accountId: account.accountId })
-                .groupBy('battle.shipId')
+                .where('battle.account = :account', { account: account })
+                .groupBy('battle.ship')
                 .addGroupBy('battle.battleType')
                 .getRawMany<{
                     shipId: number;
@@ -122,7 +135,7 @@ export class StatisticsListener {
                 };
             } = {};
             savedShipNOBattles.forEach(savedShipNOBattle => {
-                if (savedShipNOBattlesConverted[savedShipNOBattle.shipId] === undefined) {
+                if (savedShipNOBattlesConverted[savedShipNOBattle.shipId] === undefined || savedShipNOBattlesConverted[savedShipNOBattle.shipId] === null) {
                     savedShipNOBattlesConverted[savedShipNOBattle.shipId] = {};
                 }
                 savedShipNOBattlesConverted[savedShipNOBattle.shipId][savedShipNOBattle.battleType] = savedShipNOBattle.NObattles;
@@ -133,6 +146,7 @@ export class StatisticsListener {
                 const savedShipNOBattles = savedShipNOBattlesConverted[shipId];
                 const shipNOBattles = shipNOBattlesConverted[shipId];
                 return savedShipNOBattles === undefined
+                    || savedShipNOBattles === null
                     || savedShipNOBattles.pvp_solo < shipNOBattles.pvp_solo
                     || savedShipNOBattles.pvp_div2 < shipNOBattles.pvp_div2
                     || savedShipNOBattles.pvp_div3 < shipNOBattles.pvp_div3;
@@ -142,13 +156,10 @@ export class StatisticsListener {
             const battlesQueryResult = await this.apiRequestService.createQuery<Partial<StatisticsOfPlayerShipQueryData>>({
                 requestTarget: APIRequestTargetEnum.StatisticsOfPlayerShips,
                 account_id: account.accountId,
-                ship_id: shipIdsToUpdate,
+                ship_id: shipIdsToUpdate.length > 100 ? [] : shipIdsToUpdate,
                 fields: ['ship_id', 'last_battle_time', 'pvp_solo', 'pvp_div2', 'pvp_div3'],
                 extra: ['pvp_solo', 'pvp_div2', 'pvp_div3'],
             }).query();
-            if (battlesQueryResult.status !== 'ok') {
-                throw new Error(`Failed to get statistics of account ${account.accountId}`);
-            }
             const presentStatistics = battlesQueryResult.data[account.accountId];
             const presentStatisticsConverted: {
                 [ship_id: number]: {
@@ -174,8 +185,8 @@ export class StatisticsListener {
                         shipId: presentStatistic.ship_id,
                     },
                 });
-                if (currentShip === undefined) {
-                    return; // TODO: 更新Ship
+                if (currentShip === undefined || currentShip === null) {
+                    await this.shipListener.createShip(presentStatistic.ship_id);
                 }
                 await Promise.all(Object.values(BattleTypeEnum).map(async battleType => {
                     const existingStatistic = await this.statisticsCalculator.battleSummary(
@@ -213,7 +224,7 @@ export class StatisticsListener {
 
                     // 更新数据库
                     if (updatedBattle.numberOfBattles > 0) {
-                        this.battleModel.create({
+                        this.battleModel.save({
                             ...updatedBattle,
                             account: account,
                             ship: currentShip,
@@ -221,6 +232,7 @@ export class StatisticsListener {
                             battleType: battleType,
                         });
                     }
+                    console.log(`Updated ${updatedBattle.numberOfBattles} battle(s) of account ${account.accountId}, ship ${presentStatistic.ship_id}, battleType ${battleType}.`)
                 }));
             }));
             await Promise.all(accountsToUpdate.map(async account => {

@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
 import { Group } from './group.model';
 import { Account } from './account.model';
 
@@ -6,7 +6,6 @@ import { Account } from './account.model';
 export class GroupDailyReport {
 
     @PrimaryColumn()
-    @UpdateDateColumn()
     reportTime: Date;
 
     @ManyToOne(type => Group, group => group.dailyReport)

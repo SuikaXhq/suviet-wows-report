@@ -67,6 +67,9 @@ export class APIRequestService {
                             return qs.stringify(params_1, { arrayFormat: 'comma' });
                         }
                     });
+                    if (response.data.status === 'error') {
+                        throw new Error(response.data.error.message);
+                    }
                     return response.data;
                 } catch (error) {
                     throw error;
