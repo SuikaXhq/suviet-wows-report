@@ -1,7 +1,7 @@
 import { Autoload, Init, Inject, Singleton } from "@midwayjs/core";
 import { APIRequestService } from "../service/apiRequest.service";
 import { Repository } from "typeorm";
-import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model";
+import { Battle, BattleTypeEnum } from "../model/battle.model";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Account } from "../model/account.model";
 import { StatisticsCalculatorService } from "../service/statisticsCalculator.service";
@@ -221,14 +221,11 @@ export class StatisticsListener {
                             battleType: battleType,
                         });
                     }
-                    if (presentStatistic.last_battle_time > account.lastUpdatedTime) {
-                        this.accountModel.update({
-                            accountId: account.accountId,
-                        }, {
-                            lastUpdatedTime: presentStatistic.last_battle_time,
-                        });
-                    }
                 }));
+            }));
+            await Promise.all(accountsToUpdate.map(async account => {
+                account.lastUpdatedTime = lastBattleTimesQueryResult.data[account.accountId].last_battle_time;
+                await this.accountModel.save(account);
             }));
         }));
     }
