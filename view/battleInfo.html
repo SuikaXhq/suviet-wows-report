@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="css/main.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div id="main-body" class="container mx-auto">
+            <div id="account-name" class="block text-center text-3xl mx-auto my-10">
+                {{ account.nickName }}
+            </div>
+            <div id="ship-name" class="relative my-10">
+                <div class="block text-center text-3xl">
+                    {{ ship.name }}
+                </div>
+                <div class="absolute text-right text-3xl block inset-y-0 right-0">
+                    {{ ship.type }}
+                </div>
+            </div>
+            <div class="mx-auto my-10 text-2xl border-2 border-black rounded-md text-center w-max p-2">
+                查询日期：
+                <input type="date" id="start-date" name="start-date" value="{{ date.start }}" />
+                至
+                <input type="date" id="end-date" name="end-date" value="{{ date.end }}" />
+            </div>
+            <div class="">
+                
+            </div>
+        </div>
+    </body>
+</html>
