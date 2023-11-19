@@ -12,7 +12,7 @@ export default {
         database: path.join(__dirname, '../../db/suviet-wows-report.sqlite'),
         synchronize: true,
         logging: false,
-        entities: ["**/model/*.model.ts"],
+        entities: ["**/model/*.model{.ts,.js}"],
       }
     }
   },
@@ -46,7 +46,7 @@ export default {
   // use for cookie sign key, should change to your own and keep security
   keys: '123456',
   koa: {
-    port: 7001,
+    port: 60000,
   },
   view: {
     defaultViewEngine: 'nunjucks',

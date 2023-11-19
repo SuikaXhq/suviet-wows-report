@@ -51,8 +51,6 @@ export class StatisticsListener {
         if (accounts.length === 0) {
             return;
         }
-        // 更新当前服务器平均数据
-        this.shipListener.updateShips();
         // 获取玩家当前API中最后一场战斗的时间
         const lastBattleTimesQueryResult = await this.apiRequestService.createQuery<{
             [account_id: number]: {

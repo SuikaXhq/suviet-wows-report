@@ -23,6 +23,7 @@ export class ShipListener {
 
     @Init()
     async init() {
+        await this.updateShips();
         this.updateJob = schedule.scheduleJob('0 0 3 * * *', async () => {
             await this.updateShips();
         });
