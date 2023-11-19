@@ -127,7 +127,7 @@ export class Battle {
         if (battles.length === 0) {
             return Battle.createEmptyBattle();
         }
-        const newBattle: CalculatedBattle = Battle.createEmptyBattle();
+        let newBattle: CalculatedBattle = Battle.createEmptyBattle();
         battles.forEach(battle => {
             newBattle.numberOfBattles += battle.numberOfBattles;
             newBattle.wins += battle.wins;
