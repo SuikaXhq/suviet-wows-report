@@ -12,10 +12,10 @@ export class StatisticsCalculatorService {
     battleModel: Repository<Battle>;
 
     async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, startTime?: Date, endTime?: Date): Promise<Omit<Battle, 'battleId'>> {
-        if (startTime === undefined) {
+        if (startTime === undefined || startTime === null) {
             startTime = new Date(0);
         }
-        if (endTime === undefined) {
+        if (endTime === undefined || endTime === null) {
             endTime = new Date();
         }
         const battles = await this.battleModel.find({

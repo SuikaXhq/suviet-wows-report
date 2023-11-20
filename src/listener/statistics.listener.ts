@@ -191,7 +191,6 @@ export class StatisticsListener {
                         account,
                         currentShip,
                         battleType,
-                        new Date(presentStatistic.last_battle_time * 1000)
                     );
 
                     // 进行差分，得到需要插入的Battle对象
@@ -230,7 +229,6 @@ export class StatisticsListener {
                             battleType: battleType,
                         });
                     }
-                    console.log(`Updated ${updatedBattle.numberOfBattles} battle(s) of account ${account.accountId}, ship ${presentStatistic.ship_id}, battleType ${battleType}.`)
                 }));
             }));
             await Promise.all(accountsToUpdate.map(async account => {
