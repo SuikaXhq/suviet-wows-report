@@ -1,7 +1,8 @@
-import { Config, Provide } from "@midwayjs/core";
+import { Config, Provide, Scope, ScopeEnum } from "@midwayjs/core";
 import { readFile } from "fs/promises";
 
 @Provide()
+@Scope(ScopeEnum.Request, { allowDowngrade: true })
 export class ShipNameConvertService {
     @Config("shipNameConvert")
     private readonly config: {

@@ -6,6 +6,7 @@ import { HttpService } from "@midwayjs/axios";
 import * as schedule from 'node-schedule';
 import { APIRequestService } from "../service/apiRequest.service";
 import { APIRequestTargetEnum } from "../types/apiRequest.types";
+import { ShipNameConvertService } from "../service/shipNameConvert.service";
 
 @Autoload()
 @Singleton()
@@ -18,6 +19,9 @@ export class ShipListener {
 
     @Inject()
     apiRequestService: APIRequestService;
+
+    @Inject()
+    shipNameConvertService: ShipNameConvertService;
 
     private updateJob;
 
@@ -73,7 +77,7 @@ export class ShipListener {
                 return ship;
             }
 
-            ship.shipName = shipInfo[shipId].name;
+            ship.shipName = await this.shipNameConvertService.convertShipName(shipInfo[shipId].name);
             ship.shipType = shipInfo[shipId].type;
             await this.shipModel.save(ship);
             return ship;
