@@ -56,4 +56,13 @@ export default {
     shipNameConvert: {
         convertFile: path.join(__dirname, "../../static/nameConvert.json"),
     },
+
+    // Logger
+    midwayLogger: {
+        default: {
+            format: info => {
+                return `[${info.timestamp}] ${info.LEVEL} pid:${info.pid} ${info.message}}`
+            }
+        }
+    }
 } as MidwayConfig;
