@@ -1,4 +1,4 @@
-import { Autoload, Init, Inject, Singleton } from "@midwayjs/core";
+import { Autoload, ILogger, Init, Inject, Logger, Singleton } from "@midwayjs/core";
 import { APIRequestService } from "../service/apiRequest.service";
 import { Repository } from "typeorm";
 import { Battle, BattleTypeEnum } from "../model/battle.model";
@@ -32,14 +32,23 @@ export class StatisticsListener {
     @InjectEntityModel(Ship)
     shipModel: Repository<Ship>;
 
+    @Inject()
+    logger: ILogger;
+
     private updateJob;
 
     @Init()
     async init() {
         this.updateJob = schedule.scheduleJob('0 * * * * *', async () => {
-            let accounts = await this.accountModel.find();
-            await this._updateBattles(accounts);
-            console.log('Updated battles.');
+            try {
+                let accounts = await this.accountModel.find();
+                await this._updateBattles(accounts);
+                this.logger.info('StatisticsListener: Updated battles.');
+            } catch (error) {
+                this.logger.error('StatisticsListener: Failed to update battles.');
+                this.logger.error(error);
+            }
+
         });
     }
 

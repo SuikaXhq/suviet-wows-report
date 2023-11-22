@@ -1,4 +1,4 @@
-import { Config, InjectClient, Singleton } from "@midwayjs/core";
+import { Config, ILogger, Inject, InjectClient, Singleton } from "@midwayjs/core";
 import { APIRequestParametersType, APIRequestQuery, APIRequestRealmEnum, APIRequestTargetEnum, PlayersRequestResult } from "../types/apiRequest.types";
 import { HttpService, HttpServiceFactory } from "@midwayjs/axios";
 import qs from "qs";
@@ -23,6 +23,9 @@ export class APIRequestService {
 
     @InjectClient(HttpServiceFactory, 'na')
     naHttpService: HttpService;
+
+    @Inject()
+    logger: ILogger;
 
     /**
      * 创建一个查询对象，用于发送对官方API接口的请求并返回结果。
@@ -60,20 +63,16 @@ export class APIRequestService {
         return {
             queryParams,
             query: async () => {
-                try {
-                    const response = await httpService.get<PlayersRequestResult<R>>(url, {
-                        params: queryParams,
-                        paramsSerializer: (params_1) => {
-                            return qs.stringify(params_1, { arrayFormat: 'comma' });
-                        }
-                    });
-                    if (response.data.status === 'error') {
-                        throw new Error(response.data.error.message);
+                const response = await httpService.get<PlayersRequestResult<R>>(url, {
+                    params: queryParams,
+                    paramsSerializer: (params_1) => {
+                        return qs.stringify(params_1, { arrayFormat: 'comma' });
                     }
-                    return response.data;
-                } catch (error) {
-                    throw error;
+                });
+                if (response.data.status === 'error') {
+                    throw new Error(response.data.error.message);
                 }
+                return response.data;
             }
         };
     }
@@ -93,7 +92,7 @@ export class APIRequestService {
         } else if (queryParams.requestTarget === APIRequestTargetEnum.Warships) {
             url = `/wows/encyclopedia/ships/`;
         } else {
-            throw new Error(`Invalid request target from: ${queryParams}`);
+            throw new Error(`Invalid request target from: ${queryParams.requestTarget}`);
         }
         return url;
     }
