@@ -20,7 +20,11 @@ export class ShipNameConvertService {
         if (this.shipNameConvertMap === undefined || this.shipNameConvertMap === null) {
             await this.initShipNameConvertMap();
         }
-        return this.shipNameConvertMap[zh_name] ?? zh_name;
+        if (this.shipNameConvertMap[zh_name] === undefined || this.shipNameConvertMap[zh_name] === null) {
+            this.logger.debug(`ShipNameConvertService: shipNameConvertMap does not contain ${zh_name}.`);
+            return zh_name;
+        }
+        return this.shipNameConvertMap[zh_name];
     }
 
     async initShipNameConvertMap(): Promise<void> {

@@ -30,7 +30,7 @@ export class StatisticsCalculatorService {
             }
         });
         if (battles.length === 0) {
-            this.logger.warn('StatisticsCalculatorService: battle not found, returning zero result.');
+            this.logger.debug('StatisticsCalculatorService: battle not found, returning zero result.');
         }
         let mergedBattles = Battle.mergeBattles(battles); // return all 0 when battles is empty
         return {

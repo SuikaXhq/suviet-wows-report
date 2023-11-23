@@ -61,7 +61,7 @@ export default {
     midwayLogger: {
         default: {
             format: info => {
-                return `[${info.timestamp}] ${info.LEVEL} pid:${info.pid} ${info.message}}`
+                return `[${info.timestamp}] ${info.LEVEL} pid:${info.pid} ${info.message}`
             }
         }
     }
