@@ -1,8 +1,7 @@
-import { Inject, Provide } from "@midwayjs/core";
+import { ILogger, Inject, Provide } from "@midwayjs/core";
 import { Account } from "../model/account.model";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Repository } from "typeorm";
-import { Context } from "@midwayjs/koa";
 import { APIRequestService } from "./apiRequest.service";
 import { APIRequestTargetEnum } from "../types/apiRequest.types";
 
@@ -12,35 +11,35 @@ export class AccountService {
     accountModel: Repository<Account>;
 
     @Inject()
-    ctx: Context;
-
-    @Inject()
     apiRequestService: APIRequestService;
 
-    async createAccount(): Promise<Account>{
+    @Inject()
+    logger: ILogger;
+
+    async createAccount(accountId: number, nickName: string): Promise<Account>{
         // 检查是否已经存在
         const account = await this.accountModel.findOne({
             where: {
-                accountId: this.ctx.accountId,
+                accountId,
             }
         });
         if (account) {
             throw new Error('account already exists');
         }
         const newAccount = new Account();
-        newAccount.accountId = this.ctx.accountId;
-        newAccount.nickName = this.ctx.nickName;
+        newAccount.accountId = accountId;
+        newAccount.nickName = nickName;
         return await this.accountModel.save(account);
     }
 
-    async queryAccountByExactNickName(): Promise<Account>{
+    async queryAccountByExactNickName(nickName: string): Promise<Account>{
         try {
             const result = await this.apiRequestService.createQuery<{
                 nickname: string;
                 account_id: number;
             }[]>({
                 requestTarget: APIRequestTargetEnum.Players,
-                search: this.ctx.nickName,
+                search: nickName,
                 type: 'exact'
             }).query();
             if (result.meta.count === 0) {
@@ -51,14 +50,16 @@ export class AccountService {
             account.nickName = result.data[0].nickname;
             return account;
         } catch (error) {
-            console.log(error);
+            this.logger.error('AccountService: Error occurred when query account by exact nickname.')
+            this.logger.error(error);
+            return null;
         }
     }
 
-    async getAccount(): Promise<Account>{
+    async getAccount(accountId: number): Promise<Account>{
         const account = await this.accountModel.findOne({
             where: {
-                accountId: this.ctx.accountId,
+                accountId,
             }
         });
         if (account) {
