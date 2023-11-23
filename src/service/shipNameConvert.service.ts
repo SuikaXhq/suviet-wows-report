@@ -1,4 +1,4 @@
-import { Config, Provide, Scope, ScopeEnum } from "@midwayjs/core";
+import { Config, ILogger, Inject, Provide, Scope, ScopeEnum } from "@midwayjs/core";
 import { readFile } from "fs/promises";
 
 @Provide()
@@ -8,6 +8,9 @@ export class ShipNameConvertService {
     private readonly config: {
         convertFile: string;
     };
+
+    @Inject()
+    logger: ILogger;
 
     private shipNameConvertMap: {
         [zh_name: string]: string;
@@ -25,6 +28,8 @@ export class ShipNameConvertService {
             const convertFile = await readFile(this.config.convertFile, { encoding: "utf-8" });
             this.shipNameConvertMap = JSON.parse(convertFile);
         } catch (error) {
+            this.logger.error("ShipNameConvertService: init shipNameConvertMap failed.");
+            this.logger.error(error);
             throw error;
         }
     }

@@ -1,4 +1,4 @@
-import { Provide, Scope, ScopeEnum } from "@midwayjs/core";
+import { ILogger, Inject, Provide, Scope, ScopeEnum } from "@midwayjs/core";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Battle, BattleTypeEnum } from "../model/battle.model";
 import { Account } from "../model/account.model";
@@ -10,6 +10,9 @@ import { Ship } from "../model/ship.model";
 export class StatisticsCalculatorService {
     @InjectEntityModel(Battle)
     battleModel: Repository<Battle>;
+
+    @Inject()
+    logger: ILogger;
 
     async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, startTime?: Date, endTime?: Date): Promise<Omit<Battle, 'battleId'>> {
         if (startTime === undefined || startTime === null) {
@@ -26,6 +29,9 @@ export class StatisticsCalculatorService {
                 battleTime: Between(startTime.getTime() / 1000, endTime.getTime() / 1000)
             }
         });
+        if (battles.length === 0) {
+            this.logger.warn('StatisticsCalculatorService: battle not found, returning zero result.');
+        }
         let mergedBattles = Battle.mergeBattles(battles); // return all 0 when battles is empty
         return {
             ...mergedBattles,
