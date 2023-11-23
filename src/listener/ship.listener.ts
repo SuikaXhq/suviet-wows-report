@@ -111,7 +111,9 @@ export class ShipListener {
                     shipIdsToCreate.push(shipId);
                 }
             }));
-            await this.createShip(...shipIdsToCreate);
+            if (shipIdsToCreate.length > 0) {
+                await this.createShip(...shipIdsToCreate);
+            }
             await Promise.all(Object.keys(presentShipStatistics.data).map(async shipIdString => {
                 const shipId = parseInt(shipIdString);
                 const statistics = presentShipStatistics.data[shipId];

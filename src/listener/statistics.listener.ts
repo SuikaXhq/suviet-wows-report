@@ -39,6 +39,7 @@ export class StatisticsListener {
 
     @Init()
     async init() {
+        this.logger.info('StatisticsListener: initializing.');
         this.updateJob = schedule.scheduleJob('0 * * * * *', async () => {
             try {
                 let accounts = await this.accountModel.find();
