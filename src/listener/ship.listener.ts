@@ -1,4 +1,4 @@
-import { Autoload, Singleton, Inject, Init } from "@midwayjs/core";
+import { Autoload, Singleton, Inject, Init, ILogger } from "@midwayjs/core";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Repository } from "typeorm";
 import { Ship, ShipTypeEnum } from "../model/ship.model";
@@ -7,6 +7,7 @@ import * as schedule from 'node-schedule';
 import { APIRequestService } from "../service/apiRequest.service";
 import { APIRequestTargetEnum } from "../types/apiRequest.types";
 import { ShipNameConvertService } from "../service/shipNameConvert.service";
+import { ShipInfoQueryData, AcquiredShipStatistics } from "../types/ship.listener.type";
 
 @Autoload()
 @Singleton()
@@ -23,10 +24,14 @@ export class ShipListener {
     @Inject()
     shipNameConvertService: ShipNameConvertService;
 
+    @Inject()
+    logger: ILogger;
+
     private updateJob;
 
     @Init()
     async init() {
+        this.logger.info('ShipListener: initializing.')
         await this.updateShips();
         this.updateJob = schedule.scheduleJob('0 0 3 * * *', async () => {
             await this.updateShips();
@@ -35,10 +40,12 @@ export class ShipListener {
 
     async destory() {
         this.updateJob.cancel();
+        this.logger.info('ShipListener: schedule cancelled.')
     }
 
     async createShip(...shipIds: number[]): Promise<Ship[]> {
         if (shipIds.length === 0) {
+            this.logger.warn('ShipListener: createShip() called with no shipIds.')
             return [];
         }
         // 获取船只名字以及类型
@@ -70,7 +77,7 @@ export class ShipListener {
             ship.averageWinRate = null;
 
             if (shipInfo[shipId] === undefined || shipInfo[shipId] === null) {
-                console.log(`Failed to get ship info of shipId ${shipId}.`)
+                this.logger.warn(`ShipListener: Failed to get ship info of shipId ${shipId}, inserting Unknown items.`)
                 ship.shipName = 'Unknown';
                 ship.shipType = ShipTypeEnum.Destroyer;
                 await this.shipModel.save(ship);
@@ -89,7 +96,7 @@ export class ShipListener {
             const presentShipStatistics = (await this.httpService.get<AcquiredShipStatistics>(
                 'https://api.wows-numbers.com/personal/rating/expected/json/',
             )).data;
-            console.log(`Acquired ${Object.keys(presentShipStatistics.data).length} ships at ${presentShipStatistics.time}.`)
+            this.logger.info(`ShipListener: Acquired ${Object.keys(presentShipStatistics.data).length} ships at timestamp ${presentShipStatistics.time}.`)
             const lastUpdateTime = presentShipStatistics.time;
 
             let shipIdsToCreate: number[] = [];
@@ -120,7 +127,8 @@ export class ShipListener {
                 await this.shipModel.save(ship);
             }));
         } catch (error) {
-            console.error('Failed to update ships.');
+            this.logger.error('ShipListener: Failed to update ships.');
+            this.logger.error(error);
             throw error;
         }
     }
@@ -140,27 +148,10 @@ export class ShipListener {
             }).query();
             return shipInfo.data;
         } catch (error) {
-            console.error('Failed to query ships.');
+            this.logger.error('ShipListener: Failed to query ships.');
+            this.logger.error(error);
             throw error;
         }
 
-    }
-}
-
-interface AcquiredShipStatistics {
-    time: number;
-    data: {
-        [shipId: number]: {
-            average_damage_dealt: number;
-            average_frags: number;
-            win_rate: number;
-        }
-    }
-}
-
-interface ShipInfoQueryData {
-    [shipId: number]: {
-        name: string;
-        type: ShipTypeEnum;
     }
 }

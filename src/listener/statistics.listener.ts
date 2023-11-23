@@ -1,4 +1,4 @@
-import { Autoload, ILogger, Init, Inject, Logger, Singleton } from "@midwayjs/core";
+import { Autoload, ILogger, Init, Inject, Singleton } from "@midwayjs/core";
 import { APIRequestService } from "../service/apiRequest.service";
 import { Repository } from "typeorm";
 import { Battle, BattleTypeEnum } from "../model/battle.model";
@@ -43,7 +43,6 @@ export class StatisticsListener {
             try {
                 let accounts = await this.accountModel.find();
                 await this._updateBattles(accounts);
-                this.logger.info('StatisticsListener: Updated battles.');
             } catch (error) {
                 this.logger.error('StatisticsListener: Failed to update battles.');
                 this.logger.error(error);
@@ -80,6 +79,10 @@ export class StatisticsListener {
             }
             return account.lastUpdatedTime < lastBattleTimesQueryResult.data[account.accountId].last_battle_time;
         });
+        if (accountsToUpdate.length === 0) {
+            return;
+        }
+        this.logger.info(`StatisticsListener: change of ${accountsToUpdate.length} account(s) detected.`)
 
         // 寻找数据变化的船，更新数据
         await Promise.all(accountsToUpdate.map(async account => {
@@ -237,6 +240,7 @@ export class StatisticsListener {
                             battleTime: presentStatistic.last_battle_time,
                             battleType: battleType,
                         });
+                        this.logger.info(`StatisticsListener: Updated battle of account ${account.accountId}, ship ${currentShip.shipId}, battle type ${battleType} at timestamp ${presentStatistic.last_battle_time}.`);
                     }
                 }));
             }));
