@@ -7,7 +7,7 @@ import * as schedule from 'node-schedule';
 import { APIRequestService } from "../service/apiRequest.service";
 import { APIRequestTargetEnum } from "../types/apiRequest.types";
 import { ShipNameConvertService } from "../service/shipNameConvert.service";
-import { ShipInfoQueryData, AcquiredShipStatistics } from "../types/ship.listener.type";
+import { ShipInfoQueryData, AcquiredShipStatistics } from "../types/ship.listener.types";
 
 @Autoload()
 @Singleton()

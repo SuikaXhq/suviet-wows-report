@@ -4,7 +4,7 @@ import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model"
 import { Account } from "../model/account.model";
 import { Between, Repository } from "typeorm";
 import { Ship } from "../model/ship.model";
-import { StatisticsReduceTypeEnum } from "../types/statisticsCalculator.type";
+import { StatisticsReduceTypeEnum } from "../types/statisticsCalculator.types";
 
 @Provide()
 @Scope(ScopeEnum.Request, { allowDowngrade: true })
