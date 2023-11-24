@@ -62,6 +62,7 @@ export class ReportService {
         report.damageBoyOfTheDay = compareResult.damage;
         report.antiAirBoyOfTheDay = compareResult.antiAir;
         report.fragBoyOfTheDay = compareResult.frags;
+        this.logger.debug(`ReportService: updated Report ${report}.`)
         return await this.groupDailyReportModel.save(report);
     }
 
