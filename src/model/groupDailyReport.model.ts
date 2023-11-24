@@ -1,11 +1,14 @@
-import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Entity, ManyToOne, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { Group } from './group.model';
 import { Account } from './account.model';
 
 @Entity()
 export class GroupDailyReport {
 
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
+    reportId: number;
+
+    @Column({ type: 'date' })
     reportTime: Date;
 
     @ManyToOne(type => Group, group => group.dailyReport)
