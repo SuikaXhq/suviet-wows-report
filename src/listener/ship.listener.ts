@@ -31,7 +31,7 @@ export class ShipListener {
 
     @Init()
     async init() {
-        this.logger.info('ShipListener: initializing.')
+        this.logger.info('ShipListener: initializing.');
         await this.updateShips();
         this.updateJob = schedule.scheduleJob('0 0 3 * * *', async () => {
             await this.updateShips();
@@ -40,12 +40,12 @@ export class ShipListener {
 
     async destory() {
         this.updateJob.cancel();
-        this.logger.info('ShipListener: schedule cancelled.')
+        this.logger.info('ShipListener: schedule cancelled.');
     }
 
     async createShip(...shipIds: number[]): Promise<Ship[]> {
         if (shipIds.length === 0) {
-            this.logger.warn('ShipListener: createShip() called with no shipIds.')
+            this.logger.warn('ShipListener: createShip() called with no shipIds.');
             return [];
         }
         // 获取船只名字以及类型
@@ -77,7 +77,7 @@ export class ShipListener {
             ship.averageWinRate = null;
 
             if (shipInfo[shipId] === undefined || shipInfo[shipId] === null) {
-                this.logger.warn(`ShipListener: Failed to get ship info of shipId ${shipId}, inserting Unknown items.`)
+                this.logger.warn(`ShipListener: Failed to get ship info of shipId ${shipId}, inserting Unknown items.`);
                 ship.shipName = 'Unknown';
                 ship.shipType = ShipTypeEnum.Destroyer;
                 await this.shipModel.save(ship);
@@ -96,7 +96,7 @@ export class ShipListener {
             const presentShipStatistics = (await this.httpService.get<AcquiredShipStatistics>(
                 'https://api.wows-numbers.com/personal/rating/expected/json/',
             )).data;
-            this.logger.info(`ShipListener: Acquired ${Object.keys(presentShipStatistics.data).length} ships at timestamp ${presentShipStatistics.time}.`)
+            this.logger.info(`ShipListener: Acquired ${Object.keys(presentShipStatistics.data).length} ships at timestamp ${presentShipStatistics.time}.`);
             const lastUpdateTime = presentShipStatistics.time;
 
             let shipIdsToCreate: number[] = [];
