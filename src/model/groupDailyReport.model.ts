@@ -9,7 +9,7 @@ export class GroupDailyReport {
     reportId: number;
 
     @Column({ type: 'date' })
-    reportTime: Date;
+    reportTime: number;
 
     @ManyToOne(type => Group, group => group.dailyReport)
     group: Group;

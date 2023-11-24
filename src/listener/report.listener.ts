@@ -26,7 +26,9 @@ export class ReportListener {
     @Init()
     async init() {
         this.logger.info('ReportListener: initializing.');
-        const groups = await this.groupModel.find();
+        const groups = await this.groupModel.find({
+            relations: ['accounts']
+        });
         await Promise.all(groups.map(async group => {
             // 从有单场记录开始更新
             const firstDay = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 4);
@@ -37,7 +39,9 @@ export class ReportListener {
             }
         }));
         this.updateJob = schedule.scheduleJob('0 0 3 * * *', async () => {
-            const groups = await this.groupModel.find();
+            const groups = await this.groupModel.find({
+                relations: ['accounts']
+            });
             const lastDay = this.dateService.getEndDate(new Date(new Date().getTime() - 1000));
             await Promise.all(groups.map(async group => {
                 await this.reportService.updateDailyReport(group, lastDay);

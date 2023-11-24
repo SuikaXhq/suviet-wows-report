@@ -32,7 +32,7 @@ export class ReportService {
         date = this.dateService.getEndDate(date);
         let report = await this.groupDailyReportModel.findOne({
             where: {
-                reportTime: date,
+                reportTime: date.getTime() / 1000,
                 group
             }
         });
@@ -69,7 +69,7 @@ export class ReportService {
     async createDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
         date = this.dateService.getEndDate(date);
         const newReport = new GroupDailyReport();
-        newReport.reportTime = date;
+        newReport.reportTime = date.getTime() / 1000;
         newReport.group = group;
         return await this.groupDailyReportModel.save(newReport);
     }

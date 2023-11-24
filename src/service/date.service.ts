@@ -21,7 +21,7 @@ export class DateService {
         } else {
             endDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
         }
-        endDate.setHours(2, 59, 59, 999);
+        endDate.setHours(2, 59, 59, 0);
         return endDate;
     }
 
