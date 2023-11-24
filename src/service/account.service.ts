@@ -57,16 +57,11 @@ export class AccountService {
     }
 
     async getAccount(accountId: number): Promise<Account>{
-        const account = await this.accountModel.findOne({
+        return await this.accountModel.findOne({
             where: {
                 accountId,
             }
         });
-        if (account) {
-            return account;
-        } else {
-            throw new Error('Account not found.');
-        }
     }
 
 }
