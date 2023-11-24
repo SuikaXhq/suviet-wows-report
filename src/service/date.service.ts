@@ -1,6 +1,7 @@
-import { Provide } from "@midwayjs/core";
+import { Provide, Scope, ScopeEnum } from "@midwayjs/core";
 
 @Provide()
+@Scope(ScopeEnum.Request, { allowDowngrade: true })
 export class DateService {
     getStartDate(date: Date): Date {
         let startDate: Date;

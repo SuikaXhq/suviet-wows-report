@@ -2,7 +2,7 @@ import { ILogger, Inject, Provide, Scope, ScopeEnum } from "@midwayjs/core";
 import { InjectEntityModel } from "@midwayjs/typeorm";
 import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model";
 import { Account } from "../model/account.model";
-import { Between, Repository } from "typeorm";
+import { Between, FindManyOptions, In, Repository } from "typeorm";
 import { Ship } from "../model/ship.model";
 import { StatisticsReduceTypeEnum } from "../types/statisticsCalculator.types";
 
@@ -15,25 +15,69 @@ export class StatisticsCalculatorService {
     @Inject()
     logger: ILogger;
 
-    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, startTime?: Date, endTime?: Date, reduce?: StatisticsReduceTypeEnum): Promise<Omit<Battle, 'battleId'>> {
-        if (startTime === undefined || startTime === null) {
-            startTime = new Date(0);
+    async getStatistics(account: Account, options?: GetStatisticsOptions): Promise<CalculatedBattle> {
+        if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
+            options.startTime = new Date(0);
         }
-        if (endTime === undefined || endTime === null) {
-            endTime = new Date();
+        if (options === undefined || options === null || options.endTime === undefined || options.endTime === null) {
+            options.endTime = new Date();
+        }
+        const findOptions: FindManyOptions = {
+            where: {
+                account: account,
+                battleTime: Between(options.startTime.getTime() / 1000, options.endTime.getTime() / 1000)
+            }
+        };
+        if (options.battleType !== undefined) {
+            if (Array.isArray(options.battleType)) {
+                findOptions.where['battleType'] = In(options.battleType);
+            } else {
+                findOptions.where['battleType'] = options.battleType;
+            }
+        }
+        if (options.ship !== undefined) {
+            findOptions.where['ship'] = options.ship;
+        }
+        const battles = await this.battleModel.find(findOptions);
+        if (battles.length === 0) {
+            this.logger.debug('StatisticsCalculatorService: battle not found, returning zero result.');
+        }
+        const mergedBattles = this.reduceBattles(battles, StatisticsReduceTypeEnum.AVG);
+
+        return mergedBattles;
+    }
+
+    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<Omit<Battle, 'battleId'>> {
+        if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
+            options.startTime = new Date(0);
+        }
+        if (options === undefined || options === null || options.endTime === undefined || options.endTime === null) {
+            options.endTime = new Date();
         }
         const battles = await this.battleModel.find({
             where: {
                 account: account,
                 ship: ship,
                 battleType: battleType,
-                battleTime: Between(startTime.getTime() / 1000, endTime.getTime() / 1000)
+                battleTime: Between(options.startTime.getTime() / 1000, options.endTime.getTime() / 1000)
             }
         });
         if (battles.length === 0) {
             this.logger.debug('StatisticsCalculatorService: battle not found, returning zero result.');
         }
 
+        const mergedBattles = this.reduceBattles(battles, options.reduce ?? StatisticsReduceTypeEnum.SUM);
+
+        return {
+            ...mergedBattles,
+            account: account,
+            ship: ship,
+            battleType: battleType,
+            battleTime: Math.max(...battles.map(battle => battle.battleTime)),
+        }
+    }
+
+    reduceBattles(battles: CalculatedBattle[], reduce: StatisticsReduceTypeEnum): CalculatedBattle {
         let mergedBattles: CalculatedBattle;
         switch (reduce) {
             default:
@@ -124,13 +168,19 @@ export class StatisticsCalculatorService {
                 });
                 break;
         }
-
-        return {
-            ...mergedBattles,
-            account: account,
-            ship: ship,
-            battleType: battleType,
-            battleTime: Math.max(...battles.map(battle => battle.battleTime)),
-        }
+        return mergedBattles;
     }
+}
+
+export interface BattleSummaryOptions {
+    startTime?: Date;
+    endTime?: Date;
+    reduce?: StatisticsReduceTypeEnum;
+}
+
+export interface GetStatisticsOptions {
+    ship?: Ship;
+    battleType?: BattleTypeEnum | BattleTypeEnum[];
+    startTime?: Date;
+    endTime?: Date;
 }
