@@ -86,7 +86,7 @@ export class APIController {
     async addGroupMember(@Body('groupId') groupId: number, @Body('accountId') accountId: number): Promise<APIResponse<void>> {
         this.logger.info(`Post /api/group/member/add with body {groupId: ${groupId}, accountId: ${accountId}}`);
         try {
-            const group = await this.groupService.getGroup(groupId);
+            const group = await this.groupService.getGroup(groupId, true);
             const account = await this.accountService.getAccount(accountId);
             await this.groupService.addMember(group, account);
             this.logger.info(`APIController: Add account ${accountId} to group ${groupId} success.`);

@@ -36,10 +36,13 @@ export class GroupService {
         });
     }
 
-    async getGroup(groupId: number): Promise<Group> {
+    async getGroup(groupId: number, memberRelation?: boolean): Promise<Group> {
         return await this.groupModel.findOne({
             where: {
                 groupId
+            },
+            relations: {
+                accounts: memberRelation ?? false
             }
         });
     }
