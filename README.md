@@ -11,10 +11,10 @@ $ npm start
 ## TODOs
 
 - [x] Logging
-- [ ] Error Processing
-- [ ] Data Model
-- [ ] Group
-- [ ] DailyReport
+- [x] Error Processing
+- [x] Data Model
+- [x] Group
+- [x] DailyReport
 - [ ] API
 - [ ] Controller
 - [ ] Frontend

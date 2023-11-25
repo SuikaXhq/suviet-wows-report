@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Account } from './account.model';
 import { Ship } from './ship.model';
+import { GroupDailyReport } from './groupDailyReport.model';
 
 @Entity()
 export class Battle {
@@ -85,6 +86,24 @@ export class Battle {
 
     @Column()
     fragsByAircraft: number;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.actorOfTheDay)
+    actorOfTheDay: GroupDailyReport;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.prisonerOfWarOfTheDay)
+    prisonerOfWarOfTheDay: GroupDailyReport;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.scoutBoyOfTheDay)
+    scoutBoyOfTheDay: GroupDailyReport;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.damageBoyOfTheDay)
+    damageBoyOfTheDay: GroupDailyReport;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.antiAirBoyOfTheDay)
+    antiAirBoyOfTheDay: GroupDailyReport;
+
+    @OneToOne(type => GroupDailyReport, groupDailyReport => groupDailyReport.fragBoyOfTheDay)
+    fragBoyOfTheDay: GroupDailyReport;
 
     static createEmptyBattle(): CalculatedBattle {
         const battle = new Battle();
@@ -190,7 +209,18 @@ export class Battle {
 
 }
 
-export type CalculatedBattle = Omit<Battle, 'battleId' | 'account' | 'ship' | 'battleTime' | 'battleType'>;
+export type CalculatedBattle = Omit<Battle,
+    | 'battleId'
+    | 'account'
+    | 'ship'
+    | 'battleTime'
+    | 'battleType'
+    | 'actorOfTheDay'
+    | 'prisonerOfWarOfTheDay'
+    | 'fragBoyOfTheDay'
+    | 'damageBoyOfTheDay'
+    | 'antiAirBoyOfTheDay'
+    | 'scoutBoyOfTheDay'>;
 
 export enum BattleTypeEnum {
     PVP_SOLO = 'pvp_solo',

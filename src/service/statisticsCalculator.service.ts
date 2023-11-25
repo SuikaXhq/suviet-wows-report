@@ -47,7 +47,7 @@ export class StatisticsCalculatorService {
         return mergedBattles;
     }
 
-    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<Omit<Battle, 'battleId'>> {
+    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<Partial<Battle>> {
         if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
             options.startTime = new Date(0);
         }

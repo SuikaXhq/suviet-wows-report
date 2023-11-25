@@ -1,6 +1,6 @@
-import { Entity, ManyToOne, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, OneToOne, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Group } from './group.model';
-import { Account } from './account.model';
+import { Battle } from './battle.model';
 
 @Entity()
 export class GroupDailyReport {
@@ -14,22 +14,28 @@ export class GroupDailyReport {
     @ManyToOne(type => Group, group => group.dailyReport)
     group: Group;
 
-    @ManyToOne(type => Account, account => account.actorOfTheDay)
-    actorOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.actorOfTheDay)
+    @JoinColumn()
+    actorOfTheDay: Battle;
 
-    @ManyToOne(type => Account, account => account.prisonerOfWarOfTheDay)
-    prisonerOfWarOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.prisonerOfWarOfTheDay)
+    @JoinColumn()
+    prisonerOfWarOfTheDay: Battle;
 
-    @ManyToOne(type => Account, account => account.scoutBoyOfTheDay)
-    scoutBoyOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.scoutBoyOfTheDay)
+    @JoinColumn()
+    scoutBoyOfTheDay: Battle;
 
-    @ManyToOne(type => Account, account => account.damageBoyOfTheDay)
-    damageBoyOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.damageBoyOfTheDay)
+    @JoinColumn()
+    damageBoyOfTheDay: Battle;
 
-    @ManyToOne(type => Account, account => account.antiAirBoyOfTheDay)
-    antiAirBoyOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.antiAirBoyOfTheDay)
+    @JoinColumn()
+    antiAirBoyOfTheDay: Battle;
 
-    @ManyToOne(type => Account, account => account.fragBoyOfTheDay)
-    fragBoyOfTheDay: Account;
+    @OneToOne(type => Battle, battle => battle.fragBoyOfTheDay)
+    @JoinColumn()
+    fragBoyOfTheDay: Battle;
 
 }
