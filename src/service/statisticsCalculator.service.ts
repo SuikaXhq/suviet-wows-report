@@ -47,7 +47,7 @@ export class StatisticsCalculatorService {
         return mergedBattles;
     }
 
-    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<Partial<Battle>> {
+    async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<CalculatedBattle> {
         if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
             options.startTime = new Date(0);
         }
@@ -68,13 +68,7 @@ export class StatisticsCalculatorService {
 
         const mergedBattles = this.reduceBattles(battles, options.reduce ?? StatisticsReduceTypeEnum.SUM);
 
-        return {
-            ...mergedBattles,
-            account: account,
-            ship: ship,
-            battleType: battleType,
-            battleTime: Math.max(...battles.map(battle => battle.battleTime)),
-        }
+        return mergedBattles;
     }
 
     reduceBattles(battles: CalculatedBattle[], reduce: StatisticsReduceTypeEnum): CalculatedBattle {
