@@ -61,6 +61,26 @@ export class APIController {
         }
     }
 
+    @Get('/group')
+    async getGroup(@Query('groupId') groupId: number): Promise<APIResponse<Group>> {
+        this.logger.info(`Get /api/group with query {groupId: ${groupId}}`);
+        try {
+            const group = await this.groupService.getGroup(groupId, true);
+            this.logger.info(`APIController: Get group ${groupId}.`);
+            return {
+                status: 'success',
+                data: group
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get group.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
     @Post('/group/create')
     async createGroup(@Body('groupName') groupName: string): Promise<APIResponse<Group>> {
         this.logger.info(`Post /api/group/create with body {groupName: ${groupName}}`);
