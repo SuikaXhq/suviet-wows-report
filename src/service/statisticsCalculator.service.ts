@@ -16,10 +16,11 @@ export class StatisticsCalculatorService {
     logger: ILogger;
 
     async getStatistics(account: Account, options?: GetStatisticsOptions): Promise<CalculatedBattle> {
-        if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
+        options = options ?? {};
+        if (options.startTime === undefined || options.startTime === null) {
             options.startTime = new Date(0);
         }
-        if (options === undefined || options === null || options.endTime === undefined || options.endTime === null) {
+        if (options.endTime === undefined || options.endTime === null) {
             options.endTime = new Date();
         }
         const findOptions: FindManyOptions = {
@@ -48,10 +49,11 @@ export class StatisticsCalculatorService {
     }
 
     async battleSummary(account: Account, ship: Ship, battleType: BattleTypeEnum, options?: BattleSummaryOptions): Promise<CalculatedBattle> {
-        if (options === undefined || options === null || options.startTime === undefined || options.startTime === null) {
+        options = options ?? {};
+        if (options.startTime === undefined || options.startTime === null) {
             options.startTime = new Date(0);
         }
-        if (options === undefined || options === null || options.endTime === undefined || options.endTime === null) {
+        if (options.endTime === undefined || options.endTime === null) {
             options.endTime = new Date();
         }
         const battles = await this.battleModel.find({

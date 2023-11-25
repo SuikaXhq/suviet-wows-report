@@ -241,7 +241,7 @@ export class StatisticsListener {
                             battleTime: presentStatistic.last_battle_time,
                             battleType: battleType,
                         });
-                        this.logger.info(`StatisticsListener: Updated battle of account ${account.accountId}, ship ${currentShip.shipId}, battle type ${battleType} at timestamp ${presentStatistic.last_battle_time}.`);
+                        this.logger.info(`StatisticsListener: Updated ${updatedBattle.numberOfBattles} battle(s) of account ${account.accountId}, ship ${currentShip.shipId}, battle type ${battleType} at timestamp ${presentStatistic.last_battle_time}.`);
                     }
                 }));
             }));

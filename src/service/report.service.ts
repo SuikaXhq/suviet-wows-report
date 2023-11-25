@@ -34,7 +34,6 @@ export class ReportService {
                 reportTime: date.getTime() / 1000,
                 group
             },
-            relations: ['accounts'],
         });
         if (!report) {
             report = await this.createDailyReport(group, date);
@@ -48,6 +47,9 @@ export class ReportService {
             },
             relations: ['ship', 'account']
         });
+        if (battlesToday.length === 0) {
+            return report;
+        }
         const battleJudgesToday = await Promise.all(battlesToday.map(async battle => {
             const averageStatistics = await this.statisticsCalculatorService.getStatistics(battle.account, {
                 ship: battle.ship,
