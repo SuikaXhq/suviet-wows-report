@@ -12,6 +12,7 @@ import { Battle, BattleTypeEnum, CalculatedBattle } from '../model/battle.model'
 import { DateService } from '../service/date.service';
 import { ShipService } from '../service/ship.service';
 import { Ship } from '../model/ship.model';
+import { GroupDailyReport } from '../model/groupDailyReport.model';
 
 @Controller('/api')
 export class APIController {
@@ -146,14 +147,15 @@ export class APIController {
     }
 
     @Get('/report/:groupId')
-    async getReport(@Param('groupId') groupId: number, @Query('date') date: number): Promise<APIResponse<void>> {
+    async getReport(@Param('groupId') groupId: number, @Query('date') date: number): Promise<APIResponse<GroupDailyReport>> {
         this.logger.info(`Get /api/report with query {groupId: ${groupId}}`);
         try {
             const group = await this.groupService.getGroup(groupId, true);
-            await this.reportService.getDailyReport(group, new Date(date));
+            const report = await this.reportService.getDailyReport(group, new Date(date));
             this.logger.info(`APIController: Get ${date} report of group ${groupId} success.`);
             return {
-                status: 'success'
+                status: 'success',
+                data: report
             };
         } catch (error) {
             this.logger.error('APIController: Error occurred when report group.');
