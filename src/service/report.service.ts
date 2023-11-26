@@ -29,7 +29,7 @@ export class ReportService {
 
     async getDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
         date = this.dateService.getEndDate(date);
-        return await this.groupDailyReportModel.findOne({
+        const report = await this.groupDailyReportModel.findOne({
             where: {
                 reportTime: date.getTime() / 1000,
                 group
@@ -42,7 +42,12 @@ export class ReportService {
                 'antiAirBoyOfTheDay',
                 'fragBoyOfTheDay',
             ]
-        })
+        });
+        if (!report) {
+            return await this.updateDailyReport(group, date);
+        } else {
+            return report;
+        }
     }
 
     async updateDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
