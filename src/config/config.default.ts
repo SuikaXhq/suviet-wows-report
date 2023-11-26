@@ -18,6 +18,7 @@ export default {
                 entities: ["**/model/*.model{.ts,.js}"],
             },
         },
+        logging: "all",
     },
 
     // Wargaming API
@@ -62,6 +63,11 @@ export default {
         default: {
             format: info => {
                 return `[${info.timestamp}] ${info.LEVEL} pid:${info.pid} ${info.message}`
+            }
+        },
+        clients: {
+            typeormLogger: {
+                fileLogName: 'midway-typeorm.log',
             }
         }
     }

@@ -74,6 +74,9 @@ export class StatisticsCalculatorService {
     }
 
     reduceBattles(battles: CalculatedBattle[], reduce: StatisticsReduceTypeEnum): CalculatedBattle {
+        if (battles.length === 0) {
+            return Battle.createEmptyBattle();
+        }
         let mergedBattles: CalculatedBattle;
         switch (reduce) {
             default:

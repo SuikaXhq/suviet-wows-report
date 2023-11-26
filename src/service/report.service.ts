@@ -27,6 +27,24 @@ export class ReportService {
     @Inject()
     dateService: DateService;
 
+    async getDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
+        date = this.dateService.getEndDate(date);
+        return await this.groupDailyReportModel.findOne({
+            where: {
+                reportTime: date.getTime() / 1000,
+                group
+            },
+            relations: [
+                'actorOfTheDay',
+                'prisonerOfWarOfTheDay',
+                'scoutBoyOfTheDay',
+                'damageBoyOfTheDay',
+                'antiAirBoyOfTheDay',
+                'fragBoyOfTheDay',
+            ]
+        })
+    }
+
     async updateDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
         date = this.dateService.getEndDate(date);
         let report = await this.groupDailyReportModel.findOne({
@@ -41,13 +59,16 @@ export class ReportService {
 
         const battlesToday = await this.battleModel.find({
             where: {
-                account: In(group.accounts),
+                account: {
+                    accountId: In(group.accounts.map(account => account.accountId)),
+                },
                 battleTime: Between(this.dateService.getStartDate(date).getTime() / 1000, date.getTime() / 1000),
                 battleType: In([BattleTypeEnum.PVP_DIV2, BattleTypeEnum.PVP_DIV3])
             },
             relations: ['ship', 'account']
         });
         if (battlesToday.length === 0) {
+            this.logger.debug(`ReportService: no battles today.`);
             return report;
         }
         const battleJudgesToday = await Promise.all(battlesToday.map(async battle => {
@@ -55,31 +76,45 @@ export class ReportService {
                 ship: battle.ship,
             });
             const judgeResult = this._judgeBattles([battle], averageStatistics, battle.ship.shipType);
+            this.logger.debug('ReportService: judge result for battle %j of account %j, ship %j: %j.', battle.battleId, battle.account.nickName, battle.ship.shipName, judgeResult);
             return judgeResult;
         }));
         const mergedResult = this._mergeJudgeResults(battleJudgesToday);
+        this.logger.debug('ReportService: merged judge result: %j.', mergedResult);
 
         // TODO: 做成可配置
         if (battleJudgesToday[mergedResult.actor].actor >= 2) {
             report.actorOfTheDay = battlesToday[mergedResult.actor];
+        } else {
+            report.actorOfTheDay = null;
         }
         if (battleJudgesToday[mergedResult.prisoner].prisoner >= 2) {
             report.prisonerOfWarOfTheDay = battlesToday[mergedResult.prisoner];
+        } else {
+            report.prisonerOfWarOfTheDay = null;
         }
         if (battleJudgesToday[mergedResult.frags].frags >= 5) {
             report.fragBoyOfTheDay = battlesToday[mergedResult.frags];
+        } else {
+            report.fragBoyOfTheDay = null;
         }
         if (battleJudgesToday[mergedResult.scout].scout >= 250000) {
             report.scoutBoyOfTheDay = battlesToday[mergedResult.scout];
+        } else {
+            report.scoutBoyOfTheDay = null;
         }
         if (battleJudgesToday[mergedResult.damage].damage >= 250000) {
             report.damageBoyOfTheDay = battlesToday[mergedResult.damage];
+        } else {
+            report.damageBoyOfTheDay = null;
         }
         if (battleJudgesToday[mergedResult.antiAir].antiAir >= 35) {
             report.antiAirBoyOfTheDay = battlesToday[mergedResult.antiAir];
+        } else {
+            report.antiAirBoyOfTheDay = null;
         }
 
-        this.logger.debug(`ReportService: updated Report ${report}.`)
+        this.logger.debug('ReportService: updated Report %j.', report);
         return await this.groupDailyReportModel.save(report);
     }
 
@@ -114,8 +149,8 @@ export class ReportService {
     */
 
     private _judgeBattles(battles: CalculatedBattle[], averageStatistics: CalculatedBattle, shipType: ShipTypeEnum): BattlesJudgeResult {
-        let actor = 10;
-        let prisoner = 10;
+        let actor = 0;
+        let prisoner = 0;
         let frags = 0;
         let scout = 0;
         let damage = 0;
@@ -166,8 +201,10 @@ export class ReportService {
             case ShipTypeEnum.AirCarrier:
             case ShipTypeEnum.Submarine:
                 criterion = battle.damageDealt + battle.damageScouting;
+                break;
             default:
                 criterion = battle.damageDealt;
+                break;
         }
         return criterion / battle.numberOfBattles;
     }
