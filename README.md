@@ -10,14 +10,15 @@ $ npm start
 
 ## TODOs
 
+- [ ] Align with frontend
 - [x] Logging
 - [x] Error Processing
 - [x] Data Model
 - [x] Group
 - [x] DailyReport
-- [ ] API
-- [ ] Controller
-- [ ] Frontend
+- [x] API
+- [x] Controller
+- [ ] ~~Frontend~~
 - [x] Listeners
 - [x] API Query
 - [x] Statistics Calculator
