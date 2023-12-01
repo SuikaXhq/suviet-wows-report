@@ -79,6 +79,7 @@ export class ReportService {
         const battleJudgesToday = await Promise.all(battlesToday.map(async battle => {
             const averageStatistics = await this.statisticsCalculatorService.getStatistics(battle.account, {
                 ship: battle.ship,
+                endTime: date,
             });
             const judgeResult = this._judgeBattles([battle], averageStatistics, battle.ship.shipType);
             this.logger.debug('ReportService: judge result for battle %j of account %j, ship %j: %j.', battle.battleId, battle.account.nickName, battle.ship.shipName, judgeResult);
