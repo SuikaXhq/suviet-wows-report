@@ -29,19 +29,23 @@ export class ReportService {
 
     async getDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
         date = this.dateService.getEndDate(date);
+        const battleRelations = {
+            account: true,
+            ship: true,
+        }
         const report = await this.groupDailyReportModel.findOne({
             where: {
                 reportTime: date.getTime() / 1000,
                 group
             },
-            relations: [
-                'actorOfTheDay',
-                'prisonerOfWarOfTheDay',
-                'scoutBoyOfTheDay',
-                'damageBoyOfTheDay',
-                'antiAirBoyOfTheDay',
-                'fragBoyOfTheDay',
-            ]
+            relations: {
+                actorOfTheDay: battleRelations,
+                prisonerOfWarOfTheDay: battleRelations,
+                scoutBoyOfTheDay: battleRelations,
+                damageBoyOfTheDay: battleRelations,
+                antiAirBoyOfTheDay: battleRelations,
+                fragBoyOfTheDay: battleRelations,
+            }
         });
         if (!report) {
             return await this.updateDailyReport(group, date);
