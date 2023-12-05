@@ -19,6 +19,9 @@ export class Ship {
     @Column()
     shipType: ShipTypeEnum;
 
+    @Column()
+    tier: number;
+
     @Column('real', {
         nullable: true,
         default: null,

@@ -15,5 +15,6 @@ export interface ShipInfoQueryData {
     [shipId: number]: {
         name: string;
         type: ShipTypeEnum;
+        tier: number;
     }
 }

@@ -80,12 +80,14 @@ export class ShipListener {
                 this.logger.warn(`ShipListener: Failed to get ship info of shipId ${shipId}, inserting Unknown items.`);
                 ship.shipName = 'Unknown';
                 ship.shipType = ShipTypeEnum.Destroyer;
+                ship.tier = 0;
                 await this.shipModel.save(ship);
                 return ship;
             }
 
             ship.shipName = await this.shipNameConvertService.convertShipName(shipInfo[shipId].name);
             ship.shipType = shipInfo[shipId].type;
+            ship.tier = shipInfo[shipId].tier;
             await this.shipModel.save(ship);
             return ship;
         }));
@@ -137,15 +139,10 @@ export class ShipListener {
 
     private async _queryShips(shipIds: number[]): Promise<ShipInfoQueryData> {
         try {
-            const shipInfo = await this.apiRequestService.createQuery<{
-                [shipId: number]: {
-                    name: string;
-                    type: ShipTypeEnum;
-                }
-            }>({
+            const shipInfo = await this.apiRequestService.createQuery<ShipInfoQueryData>({
                 requestTarget: APIRequestTargetEnum.Warships,
                 ship_id: shipIds,
-                fields: ['name', 'type'],
+                fields: ['name', 'type', 'tier'],
                 language: 'zh-cn',
             }).query();
             return shipInfo.data;
