@@ -196,7 +196,7 @@ export class StatisticsListener {
                         shipId: presentStatistic.ship_id,
                     },
                 });
-                if (currentShip === undefined || currentShip === null) {
+                if (presentStatistic.ship_id !== undefined && (currentShip === undefined || currentShip === null)) {
                     await this.shipListener.createShip(presentStatistic.ship_id);
                 }
                 await Promise.all(Object.values(BattleTypeEnum).map(async battleType => {
