@@ -11,6 +11,7 @@ $ npm start
 ## TODOs
 
 - [ ] Align with frontend
+- [ ] Authentification
 - [x] Logging
 - [x] Error Processing
 - [x] Data Model
