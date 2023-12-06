@@ -7,6 +7,7 @@ import * as view from '@midwayjs/view-nunjucks';
 import * as dotenv from 'dotenv'
 import * as axios from '@midwayjs/axios';
 import * as orm from '@midwayjs/typeorm';
+import * as crossDomain from '@midwayjs/cross-domain';
 
 dotenv.config()
 
@@ -16,6 +17,7 @@ dotenv.config()
     orm,
     validate,
     axios,
+    crossDomain,
     {
       component: info,
       enabledEnvironment: ['local'],
