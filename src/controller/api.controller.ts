@@ -154,7 +154,8 @@ export class APIController {
             await this.groupService.addMember(group, account);
             this.logger.info(`APIController: Added account ${accountId} to group ${groupId}.`);
             return {
-                status: 'success'
+                status: 'success',
+                data: null
             };
         } catch (error) {
             this.logger.error('APIController: Error occurred when add group member.');
