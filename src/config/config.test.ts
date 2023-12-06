@@ -2,7 +2,7 @@ import { MidwayConfig } from "@midwayjs/core";
 
 export default {
     koa: {
-        port: null,
+        port: 60001,
     },
     midwayLogger: {
         default: {
@@ -17,5 +17,5 @@ export default {
     typeorm: {
         logging: "all",
         logger: "file"
-    }
+    },
 } as MidwayConfig;
