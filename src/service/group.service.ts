@@ -28,6 +28,14 @@ export class GroupService {
         return await this.groupModel.save(newGroup);
     }
 
+    async getGroupList(): Promise<number[]> {
+        return await this.groupModel.find({
+            select: ['groupId']
+        }).then(groups => {
+            return groups.map(group => group.groupId);
+        });
+    }
+
     async getGroupByName(groupName: string): Promise<Group> {
         return await this.groupModel.findOne({
             where: {

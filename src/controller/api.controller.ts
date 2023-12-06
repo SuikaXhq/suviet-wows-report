@@ -48,7 +48,7 @@ export class APIController {
         this.logger.info(`Post /api/account/create with body {accountId: ${accountId}, nickName: ${nickName}}`);
         try {
             const account = await this.accountService.createAccount(accountId, nickName);
-            this.logger.info(`APIController: Create account ${accountId} success.`);
+            this.logger.info(`APIController: Created account ${accountId}.`);
             this.logger.debug(account);
             return {
                 status: 'success',
@@ -69,7 +69,7 @@ export class APIController {
         this.logger.info(`Get /api/account with query {accountId: ${accountId}}`);
         try {
             const account = await this.accountService.getAccount(accountId);
-            this.logger.info(`APIController: Get account ${accountId}.`);
+            this.logger.info(`APIController: Got account ${accountId}.`);
             return {
                 status: 'success',
                 data: account
@@ -84,12 +84,32 @@ export class APIController {
         }
     }
 
+    @Get('/group')
+    async getGroupList(): Promise<APIResponse<number[]>> {
+        this.logger.info(`Get /api/group`);
+        try {
+            const groupList = await this.groupService.getGroupList();
+            this.logger.info(`APIController: Got group list.`);
+            return {
+                status: 'success',
+                data: groupList
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get group list.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
     @Get('/group/:groupId')
     async getGroup(@Param('groupId') groupId: number): Promise<APIResponse<Group>> {
         this.logger.info(`Get /api/group with query {groupId: ${groupId}}`);
         try {
             const group = await this.groupService.getGroup(groupId, true);
-            this.logger.info(`APIController: Get group ${groupId}.`);
+            this.logger.info(`APIController: Got group ${groupId}.`);
             return {
                 status: 'success',
                 data: group
@@ -109,7 +129,7 @@ export class APIController {
         this.logger.info(`Post /api/group/create with body {groupName: ${groupName}}`);
         try {
             const group = await this.groupService.createGroup(groupName);
-            this.logger.info(`APIController: Create group ${groupName} success.`);
+            this.logger.info(`APIController: Created group ${groupName}.`);
             this.logger.debug(group);
             return {
                 status: 'success',
@@ -132,7 +152,7 @@ export class APIController {
             const group = await this.groupService.getGroup(groupId, true);
             const account = await this.accountService.getAccount(accountId);
             await this.groupService.addMember(group, account);
-            this.logger.info(`APIController: Add account ${accountId} to group ${groupId} success.`);
+            this.logger.info(`APIController: Added account ${accountId} to group ${groupId}.`);
             return {
                 status: 'success'
             };
@@ -152,7 +172,7 @@ export class APIController {
         try {
             const group = await this.groupService.getGroup(groupId, true);
             const report = await this.reportService.getDailyReport(group, new Date(date));
-            this.logger.info(`APIController: Get ${date} report of group ${groupId} success.`);
+            this.logger.info(`APIController: Got ${date} report of group ${groupId}.`);
             return {
                 status: 'success',
                 data: report
@@ -192,7 +212,7 @@ export class APIController {
                 battleType
             };
             battles = await this.battleService.getBattle(account, getOptions);
-            this.logger.info(`APIController: Get ${battles.length} battle(s) of account ${accountId} success.`);
+            this.logger.info(`APIController: Got ${battles.length} battle(s) of account ${accountId}.`);
             return {
                 status: 'success',
                 data: battles
@@ -225,7 +245,7 @@ export class APIController {
             };
             const account = await this.accountService.getAccount(accountId);
             const statistics = await this.statisticsCalculatorService.getStatistics(account, options);
-            this.logger.info(`APIController: Get statistics of account ${accountId} success.`);
+            this.logger.info(`APIController: Got statistics of account ${accountId}.`);
             return {
                 status: 'success',
                 data: statistics
@@ -245,7 +265,7 @@ export class APIController {
         this.logger.info(`Get /api/ship with query {shipId: ${shipId}}`);
         try {
             const ship = await this.shipService.getShip(shipId);
-            this.logger.info(`APIController: Get ship ${shipId} success.`);
+            this.logger.info(`APIController: Got ship ${shipId}.`);
             return {
                 status: 'success',
                 data: ship
