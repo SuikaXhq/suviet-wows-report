@@ -124,6 +124,26 @@ export class APIController {
         }
     }
 
+    @Get('/group/:groupId/lastBattleTime')
+    async getGroupLastBattleTime(@Param('groupId') groupId: number): Promise<APIResponse<number>> {
+        this.logger.info(`Get /api/group/${groupId}/lastBattleTime`);
+        try {
+            const lastBattleTime = await this.groupService.getGroupLastBattleTime(groupId);
+            this.logger.info(`APIController: Got last battle time of group ${groupId}.`);
+            return {
+                status: 'success',
+                data: lastBattleTime
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get group last battle time.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
     @Post('/group/create')
     async createGroup(@Body('groupName') groupName: string): Promise<APIResponse<Group>> {
         this.logger.info(`Post /api/group/create with body {groupName: ${groupName}}`);

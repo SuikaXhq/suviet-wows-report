@@ -55,6 +55,21 @@ export class GroupService {
         });
     }
 
+    async getGroupLastBattleTime(groupId: number): Promise<number> {
+        const group = await this.getGroup(groupId, true);
+        if (group === null || group === undefined) {
+            this.logger.warn(`GroupService: Group ${groupId} not found during getGroupLastBattleTime().`);
+            return null;
+        }
+        let lastBattleTime = 0;
+        group.accounts.forEach(account => {
+            if (account.lastUpdatedTime > lastBattleTime) {
+                lastBattleTime = account.lastUpdatedTime;
+            }
+        });
+        return lastBattleTime;
+    }
+
     async addMember(group: Group, account: Account): Promise<void> {
         if (group === null
             || group === undefined
