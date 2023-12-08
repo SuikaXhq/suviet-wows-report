@@ -56,12 +56,29 @@ export class AccountService {
         }
     }
 
-    async getAccount(accountId: number): Promise<Account>{
-        return await this.accountModel.findOne({
+    async getAccount(accountId: number, options: GetAccountOptions = {}): Promise<Account>{
+        const findOptions = {
             where: {
                 accountId,
-            }
-        });
+            },
+            relations: [],
+        };
+        if (options.withGroups) {
+            findOptions['relations'].push('groups');
+        }
+        if (options.withShips) {
+            findOptions['relations'].push('ships');
+        }
+        if (options.withBattles) {
+            findOptions['relations'].push('battles');
+        }
+        return await this.accountModel.findOne(findOptions);
     }
 
+}
+
+export interface GetAccountOptions {
+    withGroups?: boolean;
+    withShips?: boolean;
+    withBattles?: boolean;
 }

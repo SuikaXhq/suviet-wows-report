@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from "@midwayjs/core";
 import { ILogger } from "@midwayjs/logger";
 import { InjectEntityModel } from "@midwayjs/typeorm";
-import { Between, In, Repository } from "typeorm";
+import { Between,  Brackets,  In, Repository } from "typeorm";
 import { GroupDailyReport } from "../model/groupDailyReport.model";
 import { Group } from "../model/group.model";
 import { Battle, BattleTypeEnum, CalculatedBattle } from "../model/battle.model";
@@ -27,17 +27,27 @@ export class ReportService {
     @Inject()
     dateService: DateService;
 
-    async getDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
-        date = this.dateService.getEndDate(date);
+    /**
+     * 根据Group和Date获取战报，若不指定Date则返回所有战报。
+     * @param group
+     * @param date
+     * @returns 战报列表
+     */
+    async getDailyReport(group: Group, date?: Date): Promise<GroupDailyReport[]> {
         const battleRelations = {
             account: true,
             ship: true,
         }
-        const report = await this.groupDailyReportModel.findOne({
-            where: {
-                reportTime: date.getTime() / 1000,
-                group
-            },
+        const whereOptions = {
+            group,
+        }
+        if (date) {
+            date = this.dateService.getEndDate(date);
+            whereOptions['reportTime'] = date.getTime() / 1000;
+        }
+        await this.updateDailyReport(group, new Date());
+        const report = await this.groupDailyReportModel.find({
+            where: whereOptions,
             relations: {
                 actorOfTheDay: battleRelations,
                 prisonerOfWarOfTheDay: battleRelations,
@@ -45,13 +55,40 @@ export class ReportService {
                 damageBoyOfTheDay: battleRelations,
                 antiAirBoyOfTheDay: battleRelations,
                 fragBoyOfTheDay: battleRelations,
+            },
+            order: {
+                reportTime: 'DESC',
             }
         });
+        return report;
+    }
+
+    async getDailyBattleCount(reportId: number): Promise<number> {
+        const report = await this.groupDailyReportModel.findOne({
+            select: ['reportId', 'reportTime', 'group'],
+            where: {
+                reportId,
+            },
+            relations: ['group'],
+        });
         if (!report) {
-            return await this.updateDailyReport(group, date);
-        } else {
-            return report;
+            throw new Error('report not found');
         }
+        const [startTime, endDate] = this.dateService.getBothEnds(new Date(report.reportTime * 1000));
+        const { count } = await this.battleModel.createQueryBuilder('battle')
+            .select('COUNT(*)', 'count')
+            .innerJoin('battle.account', 'account')
+            .innerJoin('account.groups', 'group')
+            .where('group.groupId = :groupId', { groupId: report.group.groupId })
+            .andWhere('battle.battleTime BETWEEN :startTime AND :endDate', { startTime: startTime.getTime() / 1000, endDate: endDate.getTime() / 1000 })
+            .andWhere(
+                new Brackets(qb => {
+                    qb.where('battle.battleType = :div2', { div2: BattleTypeEnum.PVP_DIV2 })
+                        .orWhere('battle.battleType = :div3', { div3: BattleTypeEnum.PVP_DIV3 })
+                })
+            )
+            .getRawOne<{ count: number }>();
+        return count;
     }
 
     async updateDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {

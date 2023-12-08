@@ -144,6 +144,26 @@ export class APIController {
         }
     }
 
+    @Get('/report/:reportId/battleCount')
+    async getReportBattleCount(@Param('reportId') reportId: number): Promise<APIResponse<number>> {
+        this.logger.info(`Get /api/report/${reportId}/numberOfBattles`);
+        try {
+            const numberOfBattles = await this.reportService.getDailyBattleCount(reportId);
+            this.logger.info(`APIController: Got number of battles of report ${reportId}.`);
+            return {
+                status: 'success',
+                data: numberOfBattles
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get group number of battles.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
     @Post('/group/create')
     async createGroup(@Body('groupName') groupName: string): Promise<APIResponse<Group>> {
         this.logger.info(`Post /api/group/create with body {groupName: ${groupName}}`);
@@ -187,19 +207,49 @@ export class APIController {
         }
     }
 
-    @Get('/report/:groupId')
-    async getReport(@Param('groupId') groupId: number, @Query('date') date: number): Promise<APIResponse<GroupDailyReport>> {
+    @Get('/group/:groupId/report')
+    async getReport(@Param('groupId') groupId: number, @Query('date') date?: number): Promise<APIResponse<GroupDailyReport[]>> {
         this.logger.info(`Get /api/report with query {groupId: ${groupId}}`);
         try {
             const group = await this.groupService.getGroup(groupId, true);
-            const report = await this.reportService.getDailyReport(group, new Date(date));
+            const reports = await this.reportService.getDailyReport(group, date !== undefined ? new Date(date) : undefined);
             this.logger.info(`APIController: Got ${date} report of group ${groupId}.`);
             return {
                 status: 'success',
-                data: report
+                data: reports
             };
         } catch (error) {
             this.logger.error('APIController: Error occurred when report group.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
+    @Get('/group/:groupId/report/battleCount')
+    async getGroupReportBattleCountList(@Param('groupId') groupId: number): Promise<APIResponse<{
+        [reportId: number]: number
+    }>> {
+        this.logger.info(`Get /api/group/${groupId}/report/battleCount`);
+        try {
+            const group = await this.groupService.getGroup(groupId, true);
+            const reports = await this.reportService.getDailyReport(group);
+            const numberOfBattles = await Promise.all(reports.map(report => {
+                return this.reportService.getDailyBattleCount(report.reportId);
+            }));
+            const result = {};
+            reports.forEach((report, index) => {
+                result[report.reportId] = numberOfBattles[index];
+            });
+            this.logger.info(`APIController: Got number of battles of group ${groupId}.`);
+            return {
+                status: 'success',
+                data: result
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get group number of battles.');
             this.logger.error(error);
             return {
                 status: 'failed',
