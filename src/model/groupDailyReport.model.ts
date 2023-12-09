@@ -8,7 +8,10 @@ export class GroupDailyReport {
     @PrimaryGeneratedColumn()
     reportId: number;
 
-    @Column({ type: 'date' })
+    @Column({
+        type: 'date',
+        unique: true,
+    })
     reportTime: number;
 
     @ManyToOne(type => Group, group => group.dailyReport)

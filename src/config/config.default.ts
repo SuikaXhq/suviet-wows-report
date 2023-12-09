@@ -13,7 +13,7 @@ export default {
                     __dirname,
                     "../../db/suviet-wows-report.sqlite"
                 ),
-                synchronize: true,
+                synchronize: false,
                 logging: false,
                 entities: ["**/model/*.model{.ts,.js}"],
             },
