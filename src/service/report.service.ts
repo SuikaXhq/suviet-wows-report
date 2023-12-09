@@ -36,14 +36,18 @@ export class ReportService {
             select: {
                 group: {
                     groupId: true,
+                    accounts: true,
                 },
                 reportTime: true,
+                reportId: true,
             },
             where: {
                 reportId,
             },
             relations: {
-                group: true,
+                group: {
+                    accounts: true,
+                },
                 actorOfTheDay: battleRelations,
                 prisonerOfWarOfTheDay: battleRelations,
                 scoutBoyOfTheDay: battleRelations,
@@ -52,7 +56,11 @@ export class ReportService {
                 fragBoyOfTheDay: battleRelations,
             }
         });
-        return await this.updateDailyReport(report.group, new Date(report.reportTime * 1000));
+        if (report) {
+            return await this.updateDailyReport(report.group, new Date(report.reportTime * 1000));
+        } else {
+            throw new Error('report not found');
+        }
     }
 
     /**
