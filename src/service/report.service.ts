@@ -33,6 +33,12 @@ export class ReportService {
             ship: true,
         }
         const report = await this.groupDailyReportModel.findOne({
+            select: {
+                group: {
+                    groupId: true,
+                },
+                reportTime: true,
+            },
             where: {
                 reportId,
             },
@@ -46,7 +52,7 @@ export class ReportService {
                 fragBoyOfTheDay: battleRelations,
             }
         });
-        return report;
+        return await this.updateDailyReport(report.group, new Date(report.reportTime * 1000));
     }
 
     /**
