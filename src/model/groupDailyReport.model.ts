@@ -9,7 +9,6 @@ export class GroupDailyReport {
     reportId: number;
 
     @Column({
-        type: 'date',
         unique: true,
     })
     reportTime: number;

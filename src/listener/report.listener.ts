@@ -38,14 +38,23 @@ export class ReportListener {
         //         this.logger.info(`ReportListener: updated daily report for group ${group.groupName} for timestamp ${today.getTime() / 1000}.`);
         //     }
         // }));
+        const groups = await this.groupModel.find({
+            relations: ['accounts']
+        });
+        await Promise.all(groups.map(async group => {
+            await this.reportService.createDailyReport(group, new Date());
+            this.logger.info(`ReportListener: ensure creation of today's daily report for group ${group.groupName}.`);
+        }));
         this.updateJob = schedule.scheduleJob('0 0 3 * * *', async () => {
             const groups = await this.groupModel.find({
                 relations: ['accounts']
             });
-            const lastDay = this.dateService.getEndDate(new Date(new Date().getTime() - 1000));
+            const lastDay = this.dateService.getEndDate(new Date(new Date().getTime() - 10000));
             await Promise.all(groups.map(async group => {
+                await this.reportService.createDailyReport(group, new Date());
+                this.logger.info(`ReportListener: created of today's daily report for group ${group.groupName}.`);
                 await this.reportService.updateDailyReport(group, lastDay);
-                this.logger.info(`ReportListener: updated today's daily report for group ${group.groupName}.`);
+                this.logger.info(`ReportListener: updated last day's daily report for group ${group.groupName}.`);
             }));
         });
     }

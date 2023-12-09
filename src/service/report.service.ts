@@ -140,9 +140,9 @@ export class ReportService {
                 group
             },
         });
-        if (!report) {
-            report = await this.createDailyReport(group, date);
-        }
+        // if (!report) {
+        //     report = await this.createDailyReport(group, date);
+        // }
 
         const battlesToday = await this.battleModel.find({
             where: {
@@ -208,6 +208,17 @@ export class ReportService {
 
     async createDailyReport(group: Group, date: Date): Promise<GroupDailyReport> {
         date = this.dateService.getEndDate(date);
+        const report = await this.groupDailyReportModel.findOne({
+            where: {
+                reportTime: date.getTime() / 1000,
+                group: {
+                    groupId: group.groupId,
+                }
+            },
+        });
+        if (report) {
+            return report;
+        }
         const newReport = new GroupDailyReport();
         newReport.reportTime = date.getTime() / 1000;
         newReport.group = group;
