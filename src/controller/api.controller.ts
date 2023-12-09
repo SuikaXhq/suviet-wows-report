@@ -144,6 +144,26 @@ export class APIController {
         }
     }
 
+    @Get('/report/:reportId')
+    async getReportDetail(@Param('reportId') reportId: number): Promise<APIResponse<GroupDailyReport>> {
+        this.logger.info(`Get /api/report/${reportId}`);
+        try {
+            const report = await this.reportService.getDailyReportById(reportId);
+            this.logger.info(`APIController: Got report ${reportId}.`);
+            return {
+                status: 'success',
+                data: report
+            };
+        } catch (error) {
+            this.logger.error('APIController: Error occurred when get report detail.');
+            this.logger.error(error);
+            return {
+                status: 'failed',
+                error: error.message
+            };
+        }
+    }
+
     @Get('/report/:reportId/battleCount')
     async getReportBattleCount(@Param('reportId') reportId: number): Promise<APIResponse<number>> {
         this.logger.info(`Get /api/report/${reportId}/numberOfBattles`);

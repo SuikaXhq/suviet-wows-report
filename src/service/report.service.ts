@@ -27,6 +27,28 @@ export class ReportService {
     @Inject()
     dateService: DateService;
 
+    async getDailyReportById(reportId: number): Promise<GroupDailyReport> {
+        const battleRelations = {
+            account: true,
+            ship: true,
+        }
+        const report = await this.groupDailyReportModel.findOne({
+            where: {
+                reportId,
+            },
+            relations: {
+                group: true,
+                actorOfTheDay: battleRelations,
+                prisonerOfWarOfTheDay: battleRelations,
+                scoutBoyOfTheDay: battleRelations,
+                damageBoyOfTheDay: battleRelations,
+                antiAirBoyOfTheDay: battleRelations,
+                fragBoyOfTheDay: battleRelations,
+            }
+        });
+        return report;
+    }
+
     /**
      * 根据Group和Date获取战报，若不指定Date则返回所有战报。
      * @param group
