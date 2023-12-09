@@ -22,7 +22,9 @@ export class BattleService {
         }
         const battleFindOptions: FindManyOptions = {
             where: {
-                account,
+                account: {
+                    accountId: account.accountId,
+                },
                 battleTime: Between(options.startTime.getTime() / 1000, options.endTime.getTime() / 1000),
             }
         };

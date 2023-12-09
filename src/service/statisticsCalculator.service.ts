@@ -25,8 +25,14 @@ export class StatisticsCalculatorService {
         }
         const findOptions: FindManyOptions = {
             where: {
-                account: account,
+                account: {
+                    accountId: account.accountId
+                },
                 battleTime: Between(options.startTime.getTime() / 1000, options.endTime.getTime() / 1000)
+            },
+            relations: {
+                ship: true,
+                account: true
             }
         };
         if (options.battleType !== undefined) {
@@ -37,7 +43,9 @@ export class StatisticsCalculatorService {
             }
         }
         if (options.ship !== undefined) {
-            findOptions.where['ship'] = options.ship;
+            findOptions.where['ship'] = {
+                shipId: options.ship.shipId
+            };
         }
         const battles = await this.battleModel.find(findOptions);
         if (battles.length === 0) {
@@ -58,8 +66,12 @@ export class StatisticsCalculatorService {
         }
         const battles = await this.battleModel.find({
             where: {
-                account: account,
-                ship: ship,
+                account: {
+                    accountId: account.accountId
+                },
+                ship: {
+                    shipId: ship.shipId
+                },
                 battleType: battleType,
                 battleTime: Between(options.startTime.getTime() / 1000, options.endTime.getTime() / 1000)
             }

@@ -78,7 +78,9 @@ export class ReportService {
             ship: true,
         }
         const whereOptions = {
-            group,
+            group: {
+                groupId: group.groupId,
+            },
         }
         if (date) {
             date = this.dateService.getEndDate(date);
