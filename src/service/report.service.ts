@@ -36,6 +36,7 @@ export class ReportService {
             select: {
                 group: {
                     groupId: true,
+                    groupName: true,
                     accounts: true,
                 },
                 reportTime: true,
@@ -57,7 +58,9 @@ export class ReportService {
             }
         });
         if (report) {
-            return await this.updateDailyReport(report.group, new Date(report.reportTime * 1000));
+            const updatedReport = await this.updateDailyReport(report.group, new Date(report.reportTime * 1000));
+            updatedReport.group = report.group;
+            return updatedReport;
         } else {
             throw new Error('report not found');
         }
